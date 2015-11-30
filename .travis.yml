@@ -1,0 +1,25 @@
+# Config file for automatic testing at travis-ci.org
+
+language: python
+
+python:
+  - 2.7
+  - 3.3
+
+addons:
+  apt:
+    packages:
+    - libblas-dev
+    - liblapack-dev
+    - gfortran
+    - python-numpy
+    - python-scipy
+
+before_install:
+  - pip install -U pip
+
+install:
+  - travis_wait travis_retry pip install -r requirements.txt
+  - travis_retry python setup.py install
+
+script: python setup.py test
