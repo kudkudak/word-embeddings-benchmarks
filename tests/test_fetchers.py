@@ -4,22 +4,20 @@
  Tests for data fetchers
 """
 
-import pytest
-
-from web.datasets import fetch_google_analogy, fetch_msr_analogy, fetch_semeval_2012_2, \
-    fetch_wordrep, fetch_simlex999
-
+from web.datasets.analogy import fetch_google_analogy, fetch_msr_analogy, fetch_semeval_2012_2, \
+    fetch_wordrep
+from web.datasets.similarity import fetch_simlex999
 
 def test_analogy_fetchers():
     data = fetch_msr_analogy()
-    assert len(data.answers) == len(data.questions) == 16
+    assert len(data.y) == len(data.X) == 16
 
     data = fetch_google_analogy()
-    assert len(data.answers) == len(data.questions) == 14
+    assert len(data.y) == len(data.X) == 14
     assert len(data.categories_high_level) == 2
 
     data = fetch_semeval_2012_2()
-    assert len(data.questions) == len(data.golden_scores) == len(data.platinium_scores) == 79
+    assert len(data.X) == len(data.y) ==  79
 
     data = fetch_wordrep()
     assert len(data.categories_high_level) == 24

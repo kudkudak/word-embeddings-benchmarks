@@ -1,59 +1,18 @@
+# -*- coding: utf-8 -*-
+
 """
- Functions for fetching data
+ Functions for fetching analogy data
 """
 
-from sklearn.datasets.base import Bunch
+from collections import defaultdict
+import glob
+import os
+
 from sklearn.utils import check_random_state
 
-import pandas as pd
-import numpy as np
-
+from sklearn.datasets.base import Bunch
 from .utils import _get_dataset_dir, _fetch_files, _change_list_to_np
-from collections import defaultdict
-import glob, os
 
-def fetch_simlex999():
-    """
-    Fetch SimLex999 dataset for testing attributional similarity
-
-    Returns
-    -------
-    data : sklearn.datasets.base.Bunch
-        dictionary-like object. Keys of interest:
-        'X': matrix of 2 words per column,
-        'y': vector with scores,
-        'sd': vector of sd of scores,
-        'conc': matrix with columns conc(w1), conc(w2) and concQ the from dataset
-        'POS': vector with POS tag
-        'assoc': matrix with columns denoting free association: Assoc(USF) and SimAssoc333
-
-    References
-    ----------
-    TODO: Add Indian Pines references
-
-    Notes
-    -----
-    TODO: Add notes
-
-    """
-
-    dataset_name = 'analogy/EN-SIM999'
-    data_dir = _get_dataset_dir(dataset_name, data_dir=None,
-                                verbose=0)
-    url = "https://www.dropbox.com/s/0jpa1x8vpmk3ych/EN-SIM999.txt?dl=1"
-    raw_data = _fetch_files(data_dir, [("EN-SIM999.txt", url, {})],
-                            resume=True,
-                            verbose=0)[0]
-
-    data = pd.read_csv(raw_data, "\t")
-    X = data[['word1', 'word2']].values
-    y = data['SimLex999'].values
-    sd = data['SD(SimLex)'].values
-    conc = data[['conc(w1)', 'conc(w2)', 'concQ']].values
-    POS = data[['POS']].values
-    assoc = data[['Assoc(USF)', 'SimAssoc333']].values
-
-    return Bunch(X=X, y=y, sd=sd, conc=conc, POS=POS, assoc=assoc)
 
 def fetch_msr_analogy():
     """
@@ -87,6 +46,7 @@ def fetch_msr_analogy():
     with open(raw_data, "r") as f:
         L = f.read().splitlines()
 
+    # Typical 4 words analogy questions
     questions = defaultdict(list)
     answers = defaultdict(list)
     for l in L:
@@ -155,6 +115,8 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
     elif which == "all":
         files = train_files.union(test_files)
 
+    # Every question is formed as similarity to analogy category that is
+    # posed as a list of 3 prototype word pairs
     questions = defaultdict(list)
     prototypes = {}
     golden_scores = {}
@@ -194,7 +156,7 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
 
     return Bunch(X_prot=_change_list_to_np(questions),
                  X=_change_list_to_np(questions),
-                 y_=scores[which_scoring],
+                 y=scores[which_scoring],
                  categories_names=categories_names,
                  categories_descriptions=categories_descriptions)
 
@@ -230,6 +192,7 @@ def fetch_wordrep(subsample=None, rng=None):
     wikipedia_dict = glob.glob(raw_data + "/Pairs_from_Wikipedia_and_Dictionary/*.txt")
     wordnet = glob.glob(raw_data + "/Pairs_from_WordNet/*.txt")
 
+    # This dataset is too big to calculate and store all word analogy quadruples
     word_pairs = defaultdict(list)
     files = wikipedia_dict + wordnet
     categories_high_level = {}
@@ -291,6 +254,7 @@ def fetch_google_analogy():
     with open(raw_data, "r") as f:
         L = f.read().splitlines()
 
+    # Simple 4 word analogy questions with categories
     questions = defaultdict(list)
     answers = defaultdict(list)
     category = None
