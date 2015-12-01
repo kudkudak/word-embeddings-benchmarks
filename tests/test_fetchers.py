@@ -7,7 +7,7 @@
 import pytest
 
 from web.datasets import fetch_google_analogy, fetch_msr_analogy, fetch_semeval_2012_2, \
-    fetch_wordrep
+    fetch_wordrep, fetch_simlex999
 
 
 def test_analogy_fetchers():
@@ -23,3 +23,6 @@ def test_analogy_fetchers():
 
     data = fetch_wordrep()
     assert len(data.categories_high_level) == 24
+
+    data = fetch_simlex999()
+    assert data.X.shape == (999, 2)

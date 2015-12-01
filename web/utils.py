@@ -19,6 +19,8 @@ import warnings
 import zipfile
 from ._utils.compat import _basestring, cPickle, _urllib, md5_hash
 
+def _change_list_to_np(dict):
+    return {k: np.array(dict[k]) for k in dict}
 
 def _format_time(t):
     if t > 60:
