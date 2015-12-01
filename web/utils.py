@@ -698,7 +698,7 @@ def _fetch_files(data_dir, files, resume=True, mock=False, verbose=1):
                                   handlers=opts.get('handlers', []))
             if 'move' in opts:
                 # XXX: here, move is supposed to be a dir, it can be a name
-                move = os.path.join(temp_dir, opts['move'])
+                move = os.path.join(data_dir, opts['move'])
                 move_dir = os.path.dirname(move)
                 if not os.path.exists(move_dir):
                     os.makedirs(move_dir)
@@ -714,6 +714,8 @@ def _fetch_files(data_dir, files, resume=True, mock=False, verbose=1):
                     abort = str(e)
         if (abort is None and not os.path.exists(target_file) and not
                 os.path.exists(temp_target_file)):
+            import pdb
+            pdb.set_trace()
             if not mock:
                 warnings.warn('An error occured while fetching %s' % file_)
                 abort = ("Dataset has been downloaded but requested file was "
