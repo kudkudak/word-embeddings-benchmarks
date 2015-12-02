@@ -8,7 +8,59 @@ import pandas as pd
 import numpy as np
 
 from sklearn.datasets.base import Bunch
-from .utils import _get_dataset_dir, _fetch_files
+from .utils import _get_dataset_dir, _fetch_files, _get_as_pd
+
+
+def fetch_MEN(which="all", form="natural"):
+    """
+    Fetch MEN dataset for testing similarity and relatedness
+
+    Parameters
+    -------
+    which : "all", "test" or "dev"
+    form : "lem" or "natural"
+
+    Returns
+    -------
+    data : sklearn.datasets.base.Bunch
+        dictionary-like object. Keys of interest:
+        'X': matrix of 2 words per column,
+        'y': vector with scores
+
+    References
+    ----------
+    TODO: Add Indian Pines references
+
+    Notes
+    -----
+    Scores for MEN are calculated differently than in WS353 or SimLex999.
+    Furthermore scores where rescaled to 0 - 10 scale to match standard scaling
+
+    """
+
+    if which == "dev":
+        data = _get_as_pd('similarity/EN-MEN-LEM-DEV', 'EN-MEN-LEM-DEV.txt',
+                          'https://www.dropbox.com/s/c0hm5dd95xapenf/EN-MEN-LEM-DEV.txt?dl=1',
+                          header=None, sep=" ")
+    elif which == "test":
+        data = _get_as_pd('similarity/EN-MEN-LEM-TEST', 'EN-MEN-LEM-TEST.txt',
+                          'https://www.dropbox.com/s/vdmqgvn65smm2ah/EN-MEN-LEM-TEST.txt?dl=1',
+                          header=None, sep=" ")
+    elif which == "all":
+        data = _get_as_pd('similarity/EN-MEN-LEM', 'EN-MEN-LEM.txt',
+                          'https://www.dropbox.com/s/b9rv8s7l32ni274/EN-MEN-LEM.txt?dl=1',
+                          header=None, sep=" ")
+    else:
+        raise RuntimeError("Not recognized which parameter")
+
+    if form == "natural":
+        # Remove last two chars from first two columns
+        data = data.apply(lambda x: [y if isinstance(y, float) else y[0:-2] for y in x])
+    elif form != "lem":
+        raise RuntimeError("Not recognized form argument")
+
+    return Bunch(X=data.values[:, 0:2], y=data.values[:, 2:].astype(np.float) / 5.0)
+
 
 def fetch_WS353(which="all"):
     """
@@ -40,39 +92,28 @@ def fetch_WS353(which="all"):
     TODO: Add notes
 
     """
-    header = None
     if which == "all":
-        header = 0
-        dataset_name = 'similarity/EN-WS353'
-        url = "https://www.dropbox.com/s/eqal5qj97ajaycz/EN-WS353.txt?dl=1"
-        file_name = "EN-WS353.txt"
+        data = _get_as_pd('similarity/EN-WS353', 'EN-WS353.txt',
+                          'https://www.dropbox.com/s/eqal5qj97ajaycz/EN-WS353.txt?dl=1',
+                          header=0, sep="\t")
     elif which == "relatedness":
-        dataset_name = 'similarity/EN-WSR353'
-        url = "https://www.dropbox.com/s/x94ob9zg0kj67xg/EN-WSR353.txt?dl=1"
-        file_name = "EN-WSR353.txt"
+        data = _get_as_pd('similarity/EN-WSR353', 'EN-WSR353.txt',
+                          'https://www.dropbox.com/s/eqal5qj97ajaycz/EN-WS353.txt?dl=1',
+                          header=None, sep="\t")
     elif which == "similarity":
-        dataset_name = 'similarity/EN-WSS353'
-        file_name = "EN-WSS353.txt"
-        url = "https://www.dropbox.com/s/ohbamierd2kt1kp/EN-WSS353.txt?dl=1"
+        data = _get_as_pd('similarity/EN-WSS353', 'EN-WSS353.txt',
+                          'https://www.dropbox.com/s/ohbamierd2kt1kp/EN-WSS353.txt?dl=1',
+                          header=None, sep="\t")
     elif which == "set1":
-        header = 0
-        dataset_name = 'similarity/EN-WS353-SET1'
-        file_name = "EN-WS353-SET1.txt"
-        url = "https://www.dropbox.com/s/opj6uxzh5ov8gha/EN-WS353-SET1.txt?dl=1"
+        data = _get_as_pd('similarity/EN-WS353-SET1', 'EN-WS353-SET1.txt',
+                          'https://www.dropbox.com/s/opj6uxzh5ov8gha/EN-WS353-SET1.txt?dl=1',
+                          header=0, sep="\t")
     elif which == "set2":
-        header = 0
-        dataset_name = 'similarity/EN-WS353-SET2'
-        file_name = "EN-WS353-SET2.txt"
-        url = "https://www.dropbox.com/s/w03734er70wyt5o/EN-WS353-SET2.txt?dl=1"
+        data = _get_as_pd('similarity/EN-WS353-SET2', 'EN-WS353-SET2.txt',
+                          'https://www.dropbox.com/s/w03734er70wyt5o/EN-WS353-SET2.txt?dl=1',
+                          header=0, sep="\t")
     else:
         raise RuntimeError("Not recognized which parameter")
-
-    data_dir = _get_dataset_dir(dataset_name, data_dir=None,
-                                verbose=0)
-    raw_data = _fetch_files(data_dir, [(file_name, url, {})],
-                            resume=True,
-                            verbose=0)[0]
-    data = pd.read_csv(raw_data, "\t", header=header)
 
     # We basically select all the columns available
     X = data.values[:, 0:2]
@@ -113,30 +154,23 @@ def fetch_multilingual_simlex999(which="EN"):
     """
 
     if which == "EN":
-        dataset_name = 'similarity/EN-MSIM999'
-        url = "https://www.dropbox.com/s/nczc4ao6koqq7qm/EN-MSIM999.txt?dl=1"
-        file_name = "EN-MSIM999.txt"
+        data = _get_as_pd('similarity/EN-MSIM999', 'EN-MSIM999.txt',
+                          'https://www.dropbox.com/s/nczc4ao6koqq7qm/EN-MSIM999.txt?dl=1',
+                          header=None, encoding='utf-8', sep=" ")
     elif which == "DE":
-        dataset_name = 'similarity/DE-MSIM999'
-        url = "https://www.dropbox.com/s/ucpwrp0ahawsdtf/DE-MSIM999.txt?dl=1"
-        file_name = "DE-MSIM999.txt"
+        data = _get_as_pd('similarity/DE-MSIM999', 'DE-MSIM999.txt',
+                          'https://www.dropbox.com/s/ucpwrp0ahawsdtf/DE-MSIM999.txt?dl=1',
+                          header=None, encoding='utf-8', sep=" ")
     elif which == "IT":
-        dataset_name = 'similarity/IT-MSIM999'
-        file_name = "IT-MSIM999.txt"
-        url = "https://www.dropbox.com/s/siqjagyz8dkjb9q/IT-MSIM999.txt?dl=1"
+        data = _get_as_pd('similarity/IT-MSIM999', 'IT-MSIM999.txt',
+                          'https://www.dropbox.com/s/siqjagyz8dkjb9q/IT-MSIM999.txt?dl=1',
+                          header=None, encoding='utf-8', sep=" ")
     elif which == "RU":
-        dataset_name = 'similarity/RU-MSIM999'
-        file_name = "RU-MSIM999.txt"
-        url = "https://www.dropbox.com/s/3v26edm9a31klko/RU-MSIM999.txt?dl=1"
+        data = _get_as_pd('similarity/RU-MSIM999', 'RU-MSIM999.txt',
+                          'https://www.dropbox.com/s/3v26edm9a31klko/RU-MSIM999.txt?dl=1',
+                          header=None, encoding='utf-8', sep=" ")
     else:
         raise RuntimeError("Not recognized which parameter")
-
-    data_dir = _get_dataset_dir(dataset_name, data_dir=None,
-                                verbose=0)
-    raw_data = _fetch_files(data_dir, [(file_name, url, {})],
-                            resume=True,
-                            verbose=0)[0]
-    data = pd.read_csv(raw_data, " ", encoding='utf-8', header=None)
 
     # We basically select all the columns available
     X = data.values[:, 0:2]
@@ -145,6 +179,7 @@ def fetch_multilingual_simlex999(which="EN"):
     sd = np.std(scores, axis=1)
 
     return Bunch(X=X, y=y, sd=sd)
+
 
 def fetch_simlex999():
     """
@@ -171,15 +206,10 @@ def fetch_simlex999():
 
     """
 
-    dataset_name = 'analogy/EN-SIM999'
-    data_dir = _get_dataset_dir(dataset_name, data_dir=None,
-                                verbose=0)
-    url = "https://www.dropbox.com/s/0jpa1x8vpmk3ych/EN-SIM999.txt?dl=1"
-    raw_data = _fetch_files(data_dir, [("EN-SIM999.txt", url, {})],
-                            resume=True,
-                            verbose=0)[0]
+    data = _get_as_pd('analogy/EN-SIM999', 'EN-SIM999.txt',
+                      'https://www.dropbox.com/s/0jpa1x8vpmk3ych/EN-SIM999.txt?dl=1',
+                      sep="\t")
 
-    data = pd.read_csv(raw_data, "\t")
     # We basically select all the columns available
     X = data[['word1', 'word2']].values
     y = data['SimLex999'].values

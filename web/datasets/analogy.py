@@ -9,7 +9,6 @@ import glob
 import os
 
 from sklearn.utils import check_random_state
-
 from sklearn.datasets.base import Bunch
 from .utils import _get_dataset_dir, _fetch_files, _change_list_to_np
 
@@ -35,15 +34,11 @@ def fetch_msr_analogy():
 
     """
 
-    dataset_name = 'analogy/EN-MSR'
-    data_dir = _get_dataset_dir(dataset_name, data_dir=None,
-                                verbose=0)
+    data_dir = _get_dataset_dir('analogy/EN-MSR', data_dir=None, verbose=0)
     url = "https://www.dropbox.com/s/ne0fib302jqbatw/EN-MSR.txt?dl=1"
-    raw_data = _fetch_files(data_dir, [("EN-MSR.txt", url, {})],
-                            resume=True,
-                            verbose=0)[0]
+    path = _fetch_files(data_dir, [("EN-MSR.txt", url, {})], verbose=0)[0]
 
-    with open(raw_data, "r") as f:
+    with open(path, "r") as f:
         L = f.read().splitlines()
 
     # Typical 4 words analogy questions
@@ -56,10 +51,11 @@ def fetch_msr_analogy():
 
     assert questions.keys() == answers.keys()
     assert set(questions.keys()) == set(['VBD_VBZ', 'VB_VBD', 'VBZ_VBD',
-        'VBZ_VB', 'NNPOS_NN', 'JJR_JJS', 'JJS_JJR', 'NNS_NN', 'JJR_JJ',
-        'NN_NNS', 'VB_VBZ', 'VBD_VB', 'JJS_JJ', 'NN_NNPOS', 'JJ_JJS', 'JJ_JJR'])
+                                         'VBZ_VB', 'NNPOS_NN', 'JJR_JJS', 'JJS_JJR', 'NNS_NN', 'JJR_JJ',
+                                         'NN_NNS', 'VB_VBZ', 'VBD_VB', 'JJS_JJ', 'NN_NNPOS', 'JJ_JJS', 'JJ_JJR'])
 
     return Bunch(X=_change_list_to_np(questions), y=_change_list_to_np(answers))
+
 
 def fetch_semeval_2012_2(which="all", which_scoring="golden"):
     """
@@ -98,15 +94,15 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
     assert which_scoring in ['golden', 'platinium']
 
     data_dir = _get_dataset_dir("analogy", verbose=0)
+    path = _fetch_files(data_dir, [("EN-SEMVAL-2012-2",
+                                    "https://www.dropbox.com/sh/yjzunhyqzsu1z47/AAAjyWDfP_ZAkmmNus4YBAEHa?dl=1",
+                                    {'uncompress': True, "move": "EN-SEMVAL-2012-2/EN-SEMVAL-2012-2.zip"})],
+                        verbose=0)[0]
 
-    raw_data = _fetch_files(data_dir, [("EN-SEMVAL-2012-2",
-                                        "https://www.dropbox.com/sh/yjzunhyqzsu1z47/AAAjyWDfP_ZAkmmNus4YBAEHa?dl=1",
-                                        {'uncompress': True, "move": "EN-SEMVAL-2012-2/EN-SEMVAL-2012-2.zip"})],
-                            verbose=0)[0]
-    train_files = set(glob.glob(os.path.join(raw_data, "train*.txt"))) - \
-        set(glob.glob(os.path.join(raw_data, "train*_meta.txt")))
-    test_files = set(glob.glob(os.path.join(raw_data, "test*.txt"))) - \
-        set(glob.glob(os.path.join(raw_data, "test*_meta.txt")))
+    train_files = set(glob.glob(os.path.join(path, "train*.txt"))) - \
+                  set(glob.glob(os.path.join(path, "train*_meta.txt")))
+    test_files = set(glob.glob(os.path.join(path, "test*.txt"))) - \
+                 set(glob.glob(os.path.join(path, "test*_meta.txt")))
 
     if which == "train":
         files = train_files
@@ -153,12 +149,12 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
             word_pair, score = line_g.split()
             golden_scores[c][word_pair] = score
 
-
     return Bunch(X_prot=_change_list_to_np(questions),
                  X=_change_list_to_np(questions),
                  y=scores[which_scoring],
                  categories_names=categories_names,
                  categories_descriptions=categories_descriptions)
+
 
 def fetch_wordrep(subsample=None, rng=None):
     """
@@ -183,14 +179,13 @@ def fetch_wordrep(subsample=None, rng=None):
 
     """
     data_dir = _get_dataset_dir("analogy", verbose=0)
+    path = _fetch_files(data_dir, [("EN-WORDREP",
+                                    "https://www.dropbox.com/sh/5k78h9gllvc44vt/AAALLQq-Bge605OIMlmGBbNJa?dl=1",
+                                    {'uncompress': True, "move": "EN-WORDREP/EN-WORDREP.zip"})],
+                        verbose=0)[0]
 
-    raw_data = _fetch_files(data_dir, [("EN-WORDREP",
-                                        "https://www.dropbox.com/sh/5k78h9gllvc44vt/AAALLQq-Bge605OIMlmGBbNJa?dl=1",
-                                        {'uncompress': True, "move": "EN-WORDREP/EN-WORDREP.zip"})],
-                            verbose=0)[0]
-
-    wikipedia_dict = glob.glob(raw_data + "/Pairs_from_Wikipedia_and_Dictionary/*.txt")
-    wordnet = glob.glob(raw_data + "/Pairs_from_WordNet/*.txt")
+    wikipedia_dict = glob.glob(os.path.join(path, "Pairs_from_Wikipedia_and_Dictionary/*.txt"))
+    wordnet = glob.glob(os.path.join(path, "Pairs_from_WordNet/*.txt"))
 
     # This dataset is too big to calculate and store all word analogy quadruples
     word_pairs = defaultdict(list)
@@ -206,7 +201,7 @@ def fetch_wordrep(subsample=None, rng=None):
         assert subsample <= 1.0
         rng = check_random_state(rng)
         for c in word_pairs:
-            ids = rng.choice(range(len(word_pairs[c])), int(subsample*len(word_pairs[c])), replace=False)
+            ids = rng.choice(range(len(word_pairs[c])), int(subsample * len(word_pairs[c])), replace=False)
             word_pairs[c] = [word_pairs[c][i] for i in ids]
 
     for f in wikipedia_dict:
@@ -219,6 +214,7 @@ def fetch_wordrep(subsample=None, rng=None):
 
     return Bunch(categories_high_level=categories_high_level,
                  word_pairs=_change_list_to_np(word_pairs))
+
 
 def fetch_google_analogy():
     """
@@ -243,13 +239,9 @@ def fetch_google_analogy():
 
     """
 
-    dataset_name = 'analogy/EN-GOOGLE'
-    data_dir = _get_dataset_dir(dataset_name, data_dir=None,
-                                verbose=0)
+    data_dir = _get_dataset_dir('analogy/EN-GOOGLE', data_dir=None, verbose=0)
     url = "https://www.dropbox.com/s/eujtyfb5zem1mim/EN-GOOGLE.txt?dl=1"
-    raw_data = _fetch_files(data_dir, [("EN-GOOGLE.txt", url, {})],
-                            resume=True,
-                            verbose=0)[0]
+    raw_data = _fetch_files(data_dir, [("EN-GOOGLE.txt", url, {})], verbose=0)[0]
 
     with open(raw_data, "r") as f:
         L = f.read().splitlines()
@@ -268,9 +260,10 @@ def fetch_google_analogy():
 
     assert questions.keys() == answers.keys()
     assert set(questions.keys()) == set(['gram3-comparative', 'gram8-plural', 'capital-common-countries',
-     'city-in-state','family', 'gram9-plural-verbs', 'gram2-opposite',
-     'currency', 'gram4-superlative', 'gram6-nationality-adjective', 'gram7-past-tense',
-     'gram5-present-participle', 'capital-world', 'gram1-adjective-to-adverb'])
+                                         'city-in-state', 'family', 'gram9-plural-verbs', 'gram2-opposite',
+                                         'currency', 'gram4-superlative', 'gram6-nationality-adjective',
+                                         'gram7-past-tense',
+                                         'gram5-present-participle', 'capital-world', 'gram1-adjective-to-adverb'])
 
     categories_high_level = {
         "syntactic": [c for c in questions if c.startswith("gram")],

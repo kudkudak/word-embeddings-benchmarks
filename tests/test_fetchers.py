@@ -6,7 +6,23 @@
 
 from web.datasets.analogy import fetch_google_analogy, fetch_msr_analogy, fetch_semeval_2012_2, \
     fetch_wordrep
-from web.datasets.similarity import fetch_simlex999, fetch_WS353, fetch_multilingual_simlex999
+from web.datasets.similarity import fetch_simlex999, fetch_WS353, fetch_multilingual_simlex999, \
+    fetch_MEN
+
+from itertools import product
+
+def test_MEN_fetcher():
+    params = product(["all", "dev", "test"], ["natural", "lem"])
+    data, V = {}, {}
+    for which, form in params:
+        fetched = fetch_MEN(which=which, form=form)
+        data[which + ":" + form] = fetched
+        V[which + ":" + form] = set([" ".join(sorted(x)) for x in data[which + ":" + form].X])
+        assert fetched.y.max() <= 10.0
+
+    assert V["dev:natural"].union(V["test:natural"]) == V["all:natural"]
+    assert V["dev:lem"].union(V["test:lem"]) == V["all:lem"]
+    assert data['all:natural']
 
 def test_ws353_fetcher():
     data1 = fetch_WS353(which="set1")

@@ -17,7 +17,16 @@ import sys
 import tarfile
 import warnings
 import zipfile
+import pandas as pd
 from .._utils.compat import _basestring, cPickle, _urllib, md5_hash
+
+def _get_as_pd(dataset_name, file_name, url, **read_csv_kwargs):
+    data_dir = _get_dataset_dir(dataset_name, data_dir=None,
+                                verbose=0)
+    raw_data = _fetch_files(data_dir, [(file_name, url, {})],
+                            resume=True,
+                            verbose=0)[0]
+    return pd.read_csv(raw_data, **read_csv_kwargs)
 
 def _change_list_to_np(dict):
     return {k: np.array(dict[k]) for k in dict}
