@@ -6,9 +6,9 @@
 
 from web.datasets.analogy import fetch_google_analogy, fetch_msr_analogy, fetch_semeval_2012_2, \
     fetch_wordrep
-from web.datasets.similarity import fetch_simlex999, fetch_WS353
+from web.datasets.similarity import fetch_simlex999, fetch_WS353, fetch_multilingual_simlex999
 
-def test_similarity_fetchers():
+def test_ws353_fetcher():
     data1 = fetch_WS353(which="set1")
     data2 = fetch_WS353(which="set2")
     data3 = fetch_WS353(which="similarity")
@@ -33,6 +33,15 @@ def test_similarity_fetchers():
     # Two word pairs reoccurr
     assert len(V5) == 351
 
+def test_simlex999_fetchers():
+    data = fetch_simlex999()
+    assert data.X.shape == (999, 2)
+
+    for lang in ["EN", "RU", "IT", "DE"]:
+        data = fetch_multilingual_simlex999(which=lang)
+        assert data.y.shape[0] == data.sd.shape[0]
+        assert data.X.shape[0] == 999
+
 def test_analogy_fetchers():
     data = fetch_msr_analogy()
     assert len(data.y) == len(data.X) == 16
@@ -46,6 +55,3 @@ def test_analogy_fetchers():
 
     data = fetch_wordrep()
     assert len(data.categories_high_level) == 24
-
-    data = fetch_simlex999()
-    assert data.X.shape == (999, 2)

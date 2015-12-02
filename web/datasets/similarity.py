@@ -85,6 +85,67 @@ def fetch_WS353(which="all"):
     else:
         return Bunch(X=X, y=y)
 
+
+def fetch_multilingual_simlex999(which="EN"):
+    """
+    Fetch Multilingual SimLex999 dataset for testing attributional similarity
+
+    Parameters
+    -------
+    which : "EN", "RU", "IT" or "DE" for language
+
+    Returns
+    -------
+    data : sklearn.datasets.base.Bunch
+        dictionary-like object. Keys of interest:
+        'X': matrix of 2 words per column,
+        'y': vector with scores,
+        'sd': vector of sd of scores,
+
+    References
+    ----------
+    TODO: Add Indian Pines references
+
+    Notes
+    -----
+    Scores for EN are different than the original SimLex999 dataset
+
+    """
+
+    if which == "EN":
+        dataset_name = 'similarity/EN-MSIM999'
+        url = "https://www.dropbox.com/s/nczc4ao6koqq7qm/EN-MSIM999.txt?dl=1"
+        file_name = "EN-MSIM999.txt"
+    elif which == "DE":
+        dataset_name = 'similarity/DE-MSIM999'
+        url = "https://www.dropbox.com/s/ucpwrp0ahawsdtf/DE-MSIM999.txt?dl=1"
+        file_name = "DE-MSIM999.txt"
+    elif which == "IT":
+        dataset_name = 'similarity/IT-MSIM999'
+        file_name = "IT-MSIM999.txt"
+        url = "https://www.dropbox.com/s/siqjagyz8dkjb9q/IT-MSIM999.txt?dl=1"
+    elif which == "RU":
+        dataset_name = 'similarity/RU-MSIM999'
+        file_name = "RU-MSIM999.txt"
+        url = "https://www.dropbox.com/s/3v26edm9a31klko/RU-MSIM999.txt?dl=1"
+    else:
+        raise RuntimeError("Not recognized which parameter")
+
+    data_dir = _get_dataset_dir(dataset_name, data_dir=None,
+                                verbose=0)
+    raw_data = _fetch_files(data_dir, [(file_name, url, {})],
+                            resume=True,
+                            verbose=0)[0]
+    data = pd.read_csv(raw_data, " ", encoding='utf-8', header=None)
+
+    # We basically select all the columns available
+    X = data.values[:, 0:2]
+    scores = data.values[:, 2:].astype(np.float)
+    y = np.mean(scores, axis=1)
+    sd = np.std(scores, axis=1)
+
+    return Bunch(X=X, y=y, sd=sd)
+
 def fetch_simlex999():
     """
     Fetch SimLex999 dataset for testing attributional similarity
