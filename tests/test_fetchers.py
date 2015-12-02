@@ -7,9 +7,28 @@
 from web.datasets.analogy import fetch_google_analogy, fetch_msr_analogy, fetch_semeval_2012_2, \
     fetch_wordrep
 from web.datasets.similarity import fetch_simlex999, fetch_WS353, fetch_multilingual_simlex999, \
-    fetch_MEN
+    fetch_MEN, fetch_MTurk, fetch_RW, fetch_RG65
 
 from itertools import product
+
+
+def test_MTurk_fetcher():
+    data = fetch_MTurk()
+    assert (len(data.y) == len(data.X) == 287)
+    assert (10.0 >= data.y.max() >= 9)
+
+
+def test_RW_fetcher():
+    data = fetch_RW()
+    assert (len(data.y) == len(data.X) == 2034)
+    assert (10.0 >= data.y.max() >= 9.8)
+
+
+def test_RG65_fetcher():
+    data = fetch_RG65()
+    assert (len(data.y) == len(data.X) == 65)
+    assert (10.0 >= data.y.max() >= 9.8)
+
 
 def test_MEN_fetcher():
     params = product(["all", "dev", "test"], ["natural", "lem"])
@@ -23,6 +42,7 @@ def test_MEN_fetcher():
     assert V["dev:natural"].union(V["test:natural"]) == V["all:natural"]
     assert V["dev:lem"].union(V["test:lem"]) == V["all:lem"]
     assert data['all:natural']
+
 
 def test_ws353_fetcher():
     data1 = fetch_WS353(which="set1")
@@ -49,6 +69,7 @@ def test_ws353_fetcher():
     # Two word pairs reoccurr
     assert len(V5) == 351
 
+
 def test_simlex999_fetchers():
     data = fetch_simlex999()
     assert data.X.shape == (999, 2)
@@ -57,6 +78,7 @@ def test_simlex999_fetchers():
         data = fetch_multilingual_simlex999(which=lang)
         assert data.y.shape[0] == data.sd.shape[0]
         assert data.X.shape[0] == 999
+
 
 def test_analogy_fetchers():
     data = fetch_msr_analogy()
@@ -67,7 +89,7 @@ def test_analogy_fetchers():
     assert len(data.categories_high_level) == 2
 
     data = fetch_semeval_2012_2()
-    assert len(data.X) == len(data.y) ==  79
+    assert len(data.X) == len(data.y) == 79
 
     data = fetch_wordrep()
     assert len(data.categories_high_level) == 24

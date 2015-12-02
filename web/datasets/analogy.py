@@ -9,6 +9,7 @@ import glob
 import os
 
 from sklearn.utils import check_random_state
+
 from sklearn.datasets.base import Bunch
 from .utils import _get_dataset_dir, _fetch_files, _change_list_to_np
 

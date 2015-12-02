@@ -725,8 +725,6 @@ def _fetch_files(data_dir, files, resume=True, mock=False, verbose=1):
                     abort = str(e)
         if (abort is None and not os.path.exists(target_file) and not
                 os.path.exists(temp_target_file)):
-            import pdb
-            pdb.set_trace()
             if not mock:
                 warnings.warn('An error occured while fetching %s' % file_)
                 abort = ("Dataset has been downloaded but requested file was "

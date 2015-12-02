@@ -4,11 +4,37 @@
  Functions for fetching similarity data
 """
 
-import pandas as pd
 import numpy as np
 
 from sklearn.datasets.base import Bunch
-from .utils import _get_dataset_dir, _fetch_files, _get_as_pd
+from .utils import _get_as_pd
+
+
+def fetch_MTurk():
+    """
+    Fetch MTurk dataset for testing attributional similarity
+
+    Returns
+    -------
+    data : sklearn.datasets.base.Bunch
+        dictionary-like object. Keys of interest:
+        'X': matrix of 2 words per column,
+        'y': vector with scores,
+
+    References
+    ----------
+    TODO: Add Indian Pines references
+
+    Notes
+    -----
+    Scores were scaled by factor of 2
+
+    """
+    data = _get_as_pd('similarity/EN-TRUKw', 'EN-TRUK.txt',
+                      'https://www.dropbox.com/s/f1v4ve495mmd9pw/EN-TRUK.txt?dl=1',
+                      header=None, sep=" ").values
+    return Bunch(X=data[:, 0:2],
+                 y=2 * data[:, 2].astype(np.float))
 
 
 def fetch_MEN(which="all", form="natural"):
@@ -98,7 +124,7 @@ def fetch_WS353(which="all"):
                           header=0, sep="\t")
     elif which == "relatedness":
         data = _get_as_pd('similarity/EN-WSR353', 'EN-WSR353.txt',
-                          'https://www.dropbox.com/s/eqal5qj97ajaycz/EN-WS353.txt?dl=1',
+                          'https://www.dropbox.com/s/x94ob9zg0kj67xg/EN-WSR353.txt?dl=1',
                           header=None, sep="\t")
     elif which == "similarity":
         data = _get_as_pd('similarity/EN-WSS353', 'EN-WSS353.txt',
@@ -125,6 +151,64 @@ def fetch_WS353(which="all"):
         return Bunch(X=X, y=y, sd=sd)
     else:
         return Bunch(X=X, y=y)
+
+
+def fetch_RG65():
+    """
+    Fetch Rubenstein and Goodenough dataset for testing attributional and
+    relatedness similarity
+
+    Returns
+    -------
+    data : sklearn.datasets.base.Bunch
+        dictionary-like object. Keys of interest:
+        'X': matrix of 2 words per column,
+        'y': vector with scores,
+        'sd': vector of std of scores if available (for set1 and set2)
+
+    References
+    ----------
+    TODO: Add Indian Pines references
+
+    Notes
+    -----
+    Scores were scaled by factor 10/4
+
+    """
+    data = _get_as_pd('similarity/EN-RG-65', 'EN-RG-65.txt',
+                      'https://www.dropbox.com/s/chopke5zqly228d/EN-RG-65.txt?dl=1',
+                      header=None, sep="\t").values
+    return Bunch(X=data[:, 0:2],
+                 y=data[:, 2].astype(np.float) * 10.0 / 4.0)
+
+
+def fetch_RW():
+    """
+    Fetch Rare Words dataset for testing attributional similarity
+
+    Returns
+    -------
+    data : sklearn.datasets.base.Bunch
+        dictionary-like object. Keys of interest:
+        'X': matrix of 2 words per column,
+        'y': vector with scores,
+        'sd': vector of std of scores
+
+    References
+    ----------
+    TODO: Add Indian Pines references
+
+    Notes
+    -----
+    TODO: Add notes
+
+    """
+    data = _get_as_pd('similarity/EN-RW', 'EN-RW.txt',
+                      'https://www.dropbox.com/s/xhimnr51kcla62k/EN-RW.txt?dl=1',
+                      header=None, sep="\t").values
+    return Bunch(X=data[:, 0:2],
+                 y=data[:, 2].astype(np.float),
+                 sd=np.std(data[:, 3:].astype(np.float)))
 
 
 def fetch_multilingual_simlex999(which="EN"):
