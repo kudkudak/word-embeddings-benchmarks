@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
- Functions for fetching analogy data
+ Functions for fetching analogy datasets
 """
 
 from collections import defaultdict

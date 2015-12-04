@@ -17,8 +17,30 @@ import sys
 import tarfile
 import warnings
 import zipfile
+from collections import defaultdict
+import glob
 import pandas as pd
+from sklearn.datasets.base import Bunch
 from .._utils.compat import _basestring, cPickle, _urllib, md5_hash
+
+def _get_cluster_assignments(dataset_name, url, sep=" ", skip_header=False):
+    data_dir = _get_dataset_dir("categorization", verbose=0)
+    _fetch_files(data_dir, [(dataset_name,
+                                    url,
+                                    {'uncompress': True, "move": "{0}/{0}.txt".format(dataset_name)})], verbose=0)[0]
+    files = glob.glob(os.path.join(data_dir, dataset_name + "/*.txt"))
+    X = []
+    y = []
+    names = []
+    for cluster_id, file_name in enumerate(files):
+        names.append(os.path.basename(file_name)[0:-4])
+        with open(file_name) as f:
+            lines = f.read().splitlines()[(int(skip_header)):]
+            print lines[0:2]
+
+            X += [l.split(sep) for l in lines]
+            y += [cluster_id] * len(lines)
+    return Bunch(X=np.array(X), y=np.array(y).astype("uint"), names=np.array(names))
 
 def _get_as_pd(dataset_name, file_name, url, **read_csv_kwargs):
     data_dir = _get_dataset_dir(dataset_name, data_dir=None,

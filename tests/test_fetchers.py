@@ -6,11 +6,36 @@
 
 from web.datasets.analogy import fetch_google_analogy, fetch_msr_analogy, fetch_semeval_2012_2, \
     fetch_wordrep
+
 from web.datasets.similarity import fetch_simlex999, fetch_WS353, fetch_multilingual_simlex999, \
     fetch_MEN, fetch_MTurk, fetch_RW, fetch_RG65
 
+from web.datasets.categorization import fetch_AP, fetch_BLESS, fetch_battig,\
+    fetch_ESSLI_1a, fetch_ESSLI_2b, fetch_ESSLI_2c
+
 from itertools import product
 
+def test_categorization_fetchers():
+    data = fetch_battig()
+    assert data.X.shape[0] == 5231
+
+    data = fetch_BLESS()
+    assert data.X.shape[0] == 200
+
+    data = fetch_AP()
+    assert len(set(data.y)) == 21
+
+    data = fetch_ESSLI_2c()
+    assert data.X.shape[0] == 45
+    assert len(set(data.y)) == 9
+
+    data = fetch_ESSLI_2b()
+    assert data.X.shape[0] == 40
+    assert len(set(data.y)) == 3
+
+    data = fetch_ESSLI_1a()
+    assert data.X.shape[0] == 44
+    assert len(set(data.y)) == 6
 
 def test_MTurk_fetcher():
     data = fetch_MTurk()

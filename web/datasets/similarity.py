@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
- Functions for fetching similarity data
+ Functions for fetching similarity datasets
 """
 
 import numpy as np
