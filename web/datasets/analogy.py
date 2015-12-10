@@ -7,11 +7,75 @@
 from collections import defaultdict
 import glob
 import os
+import numpy as np
 
 from sklearn.utils import check_random_state
 
 from sklearn.datasets.base import Bunch
 from .utils import _get_dataset_dir, _fetch_files, _change_list_to_np
+
+
+
+def fetch_google_analogy():
+    """
+    Fetch Google dataset for testing both semantic and syntactic analogies.
+
+    Returns
+    -------
+    data : sklearn.datasets.base.Bunch
+        dictionary-like object. Keys of interest:
+        'X': matrix of word questions
+        'y': vector of answers
+        'category': name of category
+        'category_high_level': name of high level category (semantic/syntactic)
+
+    References
+    ----------
+    TODO: Add Indian Pines references
+
+    Notes
+    -----
+    This dataset is a subset of WordRep dataset.
+
+    """
+
+    data_dir = _get_dataset_dir('analogy/EN-GOOGLE', data_dir=None, verbose=0)
+    url = "https://www.dropbox.com/s/eujtyfb5zem1mim/EN-GOOGLE.txt?dl=1"
+    raw_data = _fetch_files(data_dir, [("EN-GOOGLE.txt", url, {})], verbose=0)[0]
+
+    with open(raw_data, "r") as f:
+        L = f.read().splitlines()
+
+    # Simple 4 word analogy questions with categories
+    questions = []
+    answers = []
+    category = []
+    cat = None
+    for l in L:
+        if l.startswith(":"):
+            cat = l.split()[1]
+        else:
+            words = l.split()
+            questions.append(words[0:3])
+            answers.append(words[3])
+            category.append(cat)
+
+    assert set(category) == set(['gram3-comparative', 'gram8-plural', 'capital-common-countries',
+                                         'city-in-state', 'family', 'gram9-plural-verbs', 'gram2-opposite',
+                                         'currency', 'gram4-superlative', 'gram6-nationality-adjective',
+                                         'gram7-past-tense',
+                                         'gram5-present-participle', 'capital-world', 'gram1-adjective-to-adverb'])
+
+
+    syntactic = set([c for c in set(category) if c.startswith("gram")])
+    category_high_level = []
+    for cat in category:
+         category_high_level.append("syntactic" if cat in syntactic else "semantic")
+
+    return Bunch(X=np.vstack(questions),
+                 y=np.hstack(answers),
+                 category=np.hstack(category),
+                 category_high_level=np.hstack(category_high_level))
 
 
 def fetch_msr_analogy():
@@ -22,8 +86,9 @@ def fetch_msr_analogy():
     -------
     data : sklearn.datasets.base.Bunch
         dictionary-like object. Keys of interest:
-        'X': dictionary keyed on category with word matrix of size N x 3
-        'y': dictionary keyed on category with answers as vector of words
+        'X': matrix of word questions
+        'y': vector of answers
+        'category': name of category
 
     References
     ----------
@@ -43,19 +108,21 @@ def fetch_msr_analogy():
         L = f.read().splitlines()
 
     # Typical 4 words analogy questions
-    questions = defaultdict(list)
-    answers = defaultdict(list)
+    questions = []
+    answers = []
+    category = []
     for l in L:
         words = l.split()
-        questions[words[3]].append(words[0:3])
-        answers[words[3]].append(words[4])
 
-    assert questions.keys() == answers.keys()
-    assert set(questions.keys()) == set(['VBD_VBZ', 'VB_VBD', 'VBZ_VBD',
+        questions.append(words[0:3])
+        answers.append(words[4])
+        category.append(words[3])
+
+    assert set(category) == set(['VBD_VBZ', 'VB_VBD', 'VBZ_VBD',
                                          'VBZ_VB', 'NNPOS_NN', 'JJR_JJS', 'JJS_JJR', 'NNS_NN', 'JJR_JJ',
                                          'NN_NNS', 'VB_VBZ', 'VBD_VB', 'JJS_JJ', 'NN_NNPOS', 'JJ_JJS', 'JJ_JJR'])
 
-    return Bunch(X=_change_list_to_np(questions), y=_change_list_to_np(answers))
+    return Bunch(X=np.vstack(questions), y=np.hstack(answers), category=np.hstack(category))
 
 
 def fetch_semeval_2012_2(which="all", which_scoring="golden"):
@@ -215,62 +282,3 @@ def fetch_wordrep(subsample=None, rng=None):
 
     return Bunch(categories_high_level=categories_high_level,
                  word_pairs=_change_list_to_np(word_pairs))
-
-
-def fetch_google_analogy():
-    """
-    Fetch Google dataset for testing both semantic and syntactic analogies.
-
-    Returns
-    -------
-    data : sklearn.datasets.base.Bunch
-        dictionary-like object. Keys of interest:
-        'X': dictionary keyed on category with matrix of word questions
-        'y': dictionary keyed on category with the answer word
-        'categories_high_level': dictionary keyed on higher level category that
-        provides coarse grained grouping of categories
-
-    References
-    ----------
-    TODO: Add Indian Pines references
-
-    Notes
-    -----
-    TODO: Superseded by WordRep dataset.
-
-    """
-
-    data_dir = _get_dataset_dir('analogy/EN-GOOGLE', data_dir=None, verbose=0)
-    url = "https://www.dropbox.com/s/eujtyfb5zem1mim/EN-GOOGLE.txt?dl=1"
-    raw_data = _fetch_files(data_dir, [("EN-GOOGLE.txt", url, {})], verbose=0)[0]
-
-    with open(raw_data, "r") as f:
-        L = f.read().splitlines()
-
-    # Simple 4 word analogy questions with categories
-    questions = defaultdict(list)
-    answers = defaultdict(list)
-    category = None
-    for l in L:
-        if l.startswith(":"):
-            category = l.split()[1]
-        else:
-            words = l.split()
-            questions[category].append(words[0:3])
-            answers[category].append(words[3])
-
-    assert questions.keys() == answers.keys()
-    assert set(questions.keys()) == set(['gram3-comparative', 'gram8-plural', 'capital-common-countries',
-                                         'city-in-state', 'family', 'gram9-plural-verbs', 'gram2-opposite',
-                                         'currency', 'gram4-superlative', 'gram6-nationality-adjective',
-                                         'gram7-past-tense',
-                                         'gram5-present-participle', 'capital-world', 'gram1-adjective-to-adverb'])
-
-    categories_high_level = {
-        "syntactic": [c for c in questions if c.startswith("gram")],
-        "semantic": [c for c in questions if not c.startswith("gram")]
-    }
-
-    return Bunch(X=_change_list_to_np(questions),
-                 y=_change_list_to_np(answers),
-                 categories_high_level=categories_high_level)

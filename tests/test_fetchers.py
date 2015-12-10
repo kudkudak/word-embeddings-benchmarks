@@ -107,11 +107,11 @@ def test_simlex999_fetchers():
 
 def test_analogy_fetchers():
     data = fetch_msr_analogy()
-    assert len(data.y) == len(data.X) == 16
+    assert len(set(data.category)) == 16
 
     data = fetch_google_analogy()
-    assert len(data.y) == len(data.X) == 14
-    assert len(data.categories_high_level) == 2
+    assert len(set(data.category)) == 14
+    assert len(set(data.category_high_level)) == 2
 
     data = fetch_semeval_2012_2()
     assert len(data.X) == len(data.y) == 79
