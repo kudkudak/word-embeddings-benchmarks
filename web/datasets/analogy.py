@@ -16,6 +16,66 @@ from .utils import _get_dataset_dir, _fetch_files, _change_list_to_np
 
 
 
+def fetch_wordrep(subsample=None, rng=None):
+    """
+    Fetch  MSR WordRep dataset for testing both syntactic and semantic dataset
+
+    Returns
+    -------
+    data : sklearn.datasets.base.Bunch
+        dictionary-like object. Keys of interest:
+        'X': matrix of word pairs
+        'y': vector of answers
+        'category': name of category
+        'category_high_level': name of high level category (semantic/syntactic)
+
+    References
+    ----------
+    TODO: Add Indian Pines references
+
+    Notes
+    -----
+    This dataset is too big to calculate and store all word analogy quadruples, this is
+    why it returns word paris
+
+    """
+    data_dir = _get_dataset_dir("analogy", verbose=0)
+    path = _fetch_files(data_dir, [("EN-WORDREP",
+                                    "https://www.dropbox.com/sh/5k78h9gllvc44vt/AAALLQq-Bge605OIMlmGBbNJa?dl=1",
+                                    {'uncompress': True, "move": "EN-WORDREP/EN-WORDREP.zip"})],
+                        verbose=0)[0]
+
+    wikipedia_dict = glob.glob(os.path.join(path, "Pairs_from_Wikipedia_and_Dictionary/*.txt"))
+    wordnet = glob.glob(os.path.join(path, "Pairs_from_WordNet/*.txt"))
+
+    # This dataset is too big to calculate and store all word analogy quadruples
+    word_pairs = []
+    category = []
+    category_high_level = []
+
+    files = wikipedia_dict + wordnet
+
+    for file_name in files:
+        c = os.path.basename(file_name).split(".")[0].split("-")[1]
+        with open(file_name, "r") as f:
+            for l in f.read().splitlines():
+                word_pairs.append(l.split())
+                category.append(c)
+                category_high_level.append("wikipedia-dict" if file_name in wikipedia_dict else "wordnet")
+
+    if subsample:
+        assert 0 <= subsample <= 1.0
+        rng = check_random_state(rng)
+        ids = rng.choice(range(len(word_pairs)), int(subsample * len(word_pairs)), replace=False)
+        word_pairs = [word_pairs[i] for i in ids]
+        category = [category[i] for i in ids]
+        category_high_level = [category_high_level[i] for i in ids]
+
+    return Bunch(category_high_level=np.array(category_high_level),
+                 X=np.array(word_pairs),
+                 category=np.array(category))
+
+
 def fetch_google_analogy():
     """
     Fetch Google dataset for testing both semantic and syntactic analogies.
@@ -89,6 +149,7 @@ def fetch_msr_analogy():
         'X': matrix of word questions
         'y': vector of answers
         'category': name of category
+        'category_high_level': name of high level category (noun/adjective/verb)
 
     References
     ----------
@@ -113,18 +174,30 @@ def fetch_msr_analogy():
     category = []
     for l in L:
         words = l.split()
-
         questions.append(words[0:3])
         answers.append(words[4])
         category.append(words[3])
+
+    verb = set([c for c in set(category) if c.startswith("VB")])
+    noun = set([c for c in set(category) if c.startswith("NN")])
+    category_high_level = []
+    for cat in category:
+         if cat in verb:
+             category_high_level.append("verb")
+         elif cat in noun:
+             category_high_level.append("noun")
+         else:
+             category_high_level.append("adjective")
 
     assert set(category) == set(['VBD_VBZ', 'VB_VBD', 'VBZ_VBD',
                                          'VBZ_VB', 'NNPOS_NN', 'JJR_JJS', 'JJS_JJR', 'NNS_NN', 'JJR_JJ',
                                          'NN_NNS', 'VB_VBZ', 'VBD_VB', 'JJS_JJ', 'NN_NNPOS', 'JJ_JJS', 'JJ_JJR'])
 
-    return Bunch(X=np.vstack(questions), y=np.hstack(answers), category=np.hstack(category))
+    return Bunch(X=np.vstack(questions), y=np.hstack(answers), category=np.hstack(category),
+                 category_high_level=np.hstack(category_high_level))
 
 
+# TODO: rewrite to a more standarized version
 def fetch_semeval_2012_2(which="all", which_scoring="golden"):
     """
     Fetch dataset used for SEMEVAL 2012 task 2 competition
@@ -224,61 +297,3 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
                  categories_descriptions=categories_descriptions)
 
 
-def fetch_wordrep(subsample=None, rng=None):
-    """
-    Fetch  MSR WordRep dataset for testing both syntactic and semantic dataset
-
-    Returns
-    -------
-    data : sklearn.datasets.base.Bunch
-        dictionary-like object. Keys of interest:
-        'word_pairs': dictionary keyed on category with word matrix of words.
-        You can form questions by taking any pair of pairs of words
-        'categories_high_level': dictionary keyed on higher level category that
-        provides coarse grained grouping of categories
-
-    References
-    ----------
-    TODO: Add Indian Pines references
-
-    Notes
-    -----
-    TODO: Add notes
-
-    """
-    data_dir = _get_dataset_dir("analogy", verbose=0)
-    path = _fetch_files(data_dir, [("EN-WORDREP",
-                                    "https://www.dropbox.com/sh/5k78h9gllvc44vt/AAALLQq-Bge605OIMlmGBbNJa?dl=1",
-                                    {'uncompress': True, "move": "EN-WORDREP/EN-WORDREP.zip"})],
-                        verbose=0)[0]
-
-    wikipedia_dict = glob.glob(os.path.join(path, "Pairs_from_Wikipedia_and_Dictionary/*.txt"))
-    wordnet = glob.glob(os.path.join(path, "Pairs_from_WordNet/*.txt"))
-
-    # This dataset is too big to calculate and store all word analogy quadruples
-    word_pairs = defaultdict(list)
-    files = wikipedia_dict + wordnet
-    categories_high_level = {}
-    for f in files:
-        c = os.path.basename(f).split(".")[0].split("-")[1]
-        with open(wikipedia_dict[0], "r") as f:
-            for l in f.read().splitlines():
-                word_pairs[c].append(l.split())
-
-    if subsample:
-        assert subsample <= 1.0
-        rng = check_random_state(rng)
-        for c in word_pairs:
-            ids = rng.choice(range(len(word_pairs[c])), int(subsample * len(word_pairs[c])), replace=False)
-            word_pairs[c] = [word_pairs[c][i] for i in ids]
-
-    for f in wikipedia_dict:
-        c = os.path.basename(f).split(".")[0].split("-")[1]
-        categories_high_level[c] = "wikipedia-dict"
-
-    for f in wordnet:
-        c = os.path.basename(f).split(".")[0].split("-")[1]
-        categories_high_level[c] = "wordnet"
-
-    return Bunch(categories_high_level=categories_high_level,
-                 word_pairs=_change_list_to_np(word_pairs))

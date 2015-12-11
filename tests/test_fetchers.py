@@ -116,5 +116,6 @@ def test_analogy_fetchers():
     data = fetch_semeval_2012_2()
     assert len(data.X) == len(data.y) == 79
 
-    data = fetch_wordrep()
-    assert len(data.categories_high_level) == 24
+    data = fetch_wordrep(subsample=0.7)
+    assert len(set(data.category)) == 24
+    assert len(set(data.category_high_level)) == 2

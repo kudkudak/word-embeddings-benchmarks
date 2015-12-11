@@ -36,7 +36,6 @@ def _get_cluster_assignments(dataset_name, url, sep=" ", skip_header=False):
         names.append(os.path.basename(file_name)[0:-4])
         with open(file_name) as f:
             lines = f.read().splitlines()[(int(skip_header)):]
-            print lines[0:2]
 
             X += [l.split(sep) for l in lines]
             y += [cluster_id] * len(lines)
