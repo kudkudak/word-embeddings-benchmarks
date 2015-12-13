@@ -13,7 +13,7 @@ from sklearn.utils import check_random_state
 
 from sklearn.datasets.base import Bunch
 from .utils import _get_dataset_dir, _fetch_files, _change_list_to_np
-
+from ..utils import standardize_string
 
 
 def fetch_wordrep(subsample=None, rng=None):
@@ -56,10 +56,10 @@ def fetch_wordrep(subsample=None, rng=None):
     files = wikipedia_dict + wordnet
 
     for file_name in files:
-        c = os.path.basename(file_name).split(".")[0].split("-")[1]
+        c = os.path.basename(file_name).split(".")[0].split("-")[1].lower()
         with open(file_name, "r") as f:
             for l in f.read().splitlines():
-                word_pairs.append(l.split())
+                word_pairs.append(standardize_string(l).split())
                 category.append(c)
                 category_high_level.append("wikipedia-dict" if file_name in wikipedia_dict else "wordnet")
 
@@ -113,9 +113,9 @@ def fetch_google_analogy():
     cat = None
     for l in L:
         if l.startswith(":"):
-            cat = l.split()[1]
+            cat =l.lower().split()[1]
         else:
-            words = l.split()
+            words =  standardize_string(l).split()
             questions.append(words[0:3])
             answers.append(words[3])
             category.append(cat)
@@ -173,7 +173,7 @@ def fetch_msr_analogy():
     answers = []
     category = []
     for l in L:
-        words = l.split()
+        words = standardize_string(l).split()
         questions.append(words[0:3])
         answers.append(words[4])
         category.append(words[3])
@@ -189,7 +189,7 @@ def fetch_msr_analogy():
          else:
              category_high_level.append("adjective")
 
-    assert set(category) == set(['VBD_VBZ', 'VB_VBD', 'VBZ_VBD',
+    assert set([c.upper() for c in category]) == set(['VBD_VBZ', 'VB_VBD', 'VBZ_VBD',
                                          'VBZ_VB', 'NNPOS_NN', 'JJR_JJS', 'JJS_JJR', 'NNS_NN', 'JJR_JJ',
                                          'NN_NNS', 'VB_VBZ', 'VBD_VB', 'JJS_JJ', 'NN_NNPOS', 'JJ_JJS', 'JJ_JJR'])
 
@@ -282,12 +282,12 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
         platinium_scores[c] = {}
 
         for line_pl in platinium[1:]:
-            word_pair, score = line_pl.split()
+            word_pair, score = standardize_string(line_pl).split()
             questions[c].append(word_pair.split(":"))
             platinium_scores[c][word_pair] = score
 
         for line_g in golden[1:]:
-            word_pair, score = line_g.split()
+            word_pair, score = standardize_string(line_g).split()
             golden_scores[c][word_pair] = score
 
     return Bunch(X_prot=_change_list_to_np(questions),

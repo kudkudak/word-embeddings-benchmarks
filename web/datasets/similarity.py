@@ -9,7 +9,6 @@ import numpy as np
 from sklearn.datasets.base import Bunch
 from .utils import _get_as_pd
 
-
 def fetch_MTurk():
     """
     Fetch MTurk dataset for testing attributional similarity

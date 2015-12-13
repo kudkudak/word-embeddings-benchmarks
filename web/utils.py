@@ -3,12 +3,48 @@
 
 """Utilities for package"""
 
-import six
-from six import text_type as unicode
-from six import string_types
-
 from os import path
 import tarfile
+
+from six import string_types
+
+# Works just as good with unicode chars
+_delchars = [chr(c) for c in range(256)]
+_delchars = [x for x in _delchars if not x.isalnum()]
+_delchars.remove(' ')
+_delchars.remove('_') # for instance phrases joining in word2vec
+_delchars = ''.join(_delchars)
+_delchars_table = dict((ord(char), None) for char in _delchars)
+
+
+# TODO: add support for french and german
+def standardize_string(s, remove_nonstandards_chars=True, lower=True, language="english"):
+  """
+  Ensures common convention across code. Converts to utf-8 and removes non-alphanumeric characters
+
+  Parameters
+  -----------
+  language: only "english" is now supported. If "english" will remove non-alphanumeric characters
+  lower: if True will lower string.
+  remove_nonstandards_chars: if True will remove non standard characters (for instance '$' or '#')
+
+  Returns
+  ----------
+  string: processed string
+  """
+
+  assert isinstance(s, string_types)
+
+  if not isinstance(s, unicode):
+    s = unicode(s, "utf-8")
+
+  if language == "english":
+    s = (s.lower() if lower else s)
+    s = (s.translate(_delchars_table) if remove_nonstandards_chars else s)
+    return s
+  else:
+    raise NotImplementedError("Not implemented standarization for other languages")
+
 
 def _open(file_, mode='r'):
   """Open file object given filenames, open files or even archives."""
