@@ -14,7 +14,7 @@ from .utils import _open
 from .vocabulary import CountedVocabulary, OrderedVocabulary
 from six.moves import cPickle as pickle
 from functools import partial
-from .utils import standardize_string
+from .utils import standardize_string, to_utf8
 
 logger = logging.getLogger(__name__)
 
@@ -211,23 +211,24 @@ class Embedding(object):
                 index = line_no
                 vectors[index, :] = np.fromstring(fin.read(binary_len), dtype=np.float32)
 
-            return words[0:index], vectors[0:index]
+            return words, vectors
 
     @staticmethod
     def _from_word2vec_text(fname):
         with _open(fname, 'rb') as fin:
             # TODO: merge words, words_seen and vectors
             words = []
-            words_seen = set()
             header = unicode(fin.readline())
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
-            vectors = []
+            vectors = np.zeros(shape=(vocab_size, layer1_size), dtype=np.float32)
             for line_no, line in enumerate(fin):
                 try:
                     parts = unicode(line, encoding="utf-8").strip().split()
                 except TypeError as e:
                     parts = line.strip().split()
                 except Exception as e:
+                    import pdb
+                    pdb.set_trace()
                     logger.warning("We ignored line number {} because of erros in parsing"
                                    "\n{}".format(line_no, e))
                     continue
@@ -235,9 +236,9 @@ class Embedding(object):
                 # Our assumption that a difference of one happens because of having a
                 # space in the word.
                 if len(parts) == layer1_size + 1:
-                    word, weights = parts[0], list(map(np.float32, parts[1:]))
+                    word, vectors[line_no] = parts[0], list(map(np.float32, parts[1:]))
                 elif len(parts) == layer1_size + 2:
-                    word, weights = parts[:2], list(map(np.float32, parts[2:]))
+                    word, vectors[line_no] = parts[:2], list(map(np.float32, parts[2:]))
                     word = u" ".join(word)
                 else:
                     logger.warning("We ignored line number {} because of unrecognized "
@@ -245,10 +246,31 @@ class Embedding(object):
                     continue
 
                 words.append(word)
-                vectors.append(weights)
 
-            vectors = np.asarray(vectors, dtype=np.float32)
             return words, vectors
+
+    @staticmethod
+    def to_word2vec(w, fname, binary=False):
+        """
+        Store the input-hidden weight matrix in the same format used by the original
+        C word2vec-tool, for compatibility.
+
+        Parameters
+        ----------
+        w: Embedding instance
+
+        fname: string
+          Destination file
+        """
+        logger.info("storing %sx%s projection weights into %s" % (w.vectors.shape[0], w.vectors.shape[1], fname))
+        with _open(fname, 'wb') as fout:
+            fout.write(to_utf8("%s %s\n" % w.vectors.shape))
+            # store in sorted order: most frequent words at the top
+            for word, vector in zip(w.vocabulary.words, w.vectors):
+                if binary:
+                    fout.write(to_utf8(word) + b" " + vector.tostring())
+                else:
+                    fout.write(to_utf8("%s %s\n" % (word, ' '.join("%f" % val for val in vector))))
 
     @staticmethod
     def from_word2vec(fname, fvocab=None, binary=False):

@@ -8,6 +8,14 @@ import tarfile
 
 from six import string_types
 
+def any2utf8(text, errors='strict', encoding='utf8'):
+    """Convert a string (unicode or bytestring in `encoding`), to bytestring in utf8."""
+    if isinstance(text, unicode):
+        return text.encode('utf8')
+    # do bytestring -> unicode -> utf8 full circle, to ensure valid utf8
+    return unicode(text, encoding, errors=errors).encode('utf8')
+to_utf8 = any2utf8
+
 # Works just as good with unicode chars
 _delchars = [chr(c) for c in range(256)]
 _delchars = [x for x in _delchars if not x.isalnum()]

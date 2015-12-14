@@ -12,16 +12,18 @@ import contextlib
 import fnmatch
 import hashlib
 import shutil
+import tempfile
 import time
 import sys
 import tarfile
 import warnings
 import zipfile
-from collections import defaultdict
 import glob
 import pandas as pd
 from sklearn.datasets.base import Bunch
 from .._utils.compat import _basestring, cPickle, _urllib, md5_hash
+
+TEMP = tempfile.gettempdir()
 
 def _get_cluster_assignments(dataset_name, url, sep=" ", skip_header=False):
     data_dir = _get_dataset_dir("categorization", verbose=0)
@@ -95,6 +97,7 @@ def readlinkabs(link):
     if os.path.isabs(path):
         return path
     return os.path.join(os.path.dirname(link), path)
+
 
 
 def _chunk_report_(bytes_so_far, total_size, initial_size, t0):
@@ -201,14 +204,14 @@ def _chunk_read_(response, local_file, chunk_size=8192, report_hook=None,
     return
 
 
-def _get_dataset_dir(dataset_name, data_dir=None, default_paths=None,
+def _get_dataset_dir(sub_dir=None, data_dir=None, default_paths=None,
                      verbose=1):
     """ Create if necessary and returns data directory of given dataset.
 
     Parameters
     ----------
-    dataset_name: string
-        The unique name of the dataset.
+    sub_dir: string
+        Name of sub-dir
 
     data_dir: string, optional
         Path of the data directory. Used to force data storage in a specified
@@ -265,8 +268,8 @@ def _get_dataset_dir(dataset_name, data_dir=None, default_paths=None,
 
     # Check if the dataset exists somewhere
     for path, is_pre_dir in paths:
-        if not is_pre_dir:
-            path = os.path.join(path, dataset_name)
+        if not is_pre_dir and sub_dir:
+            path = os.path.join(path, sub_dir)
         if os.path.islink(path):
             # Resolve path
             path = readlinkabs(path)
@@ -278,8 +281,8 @@ def _get_dataset_dir(dataset_name, data_dir=None, default_paths=None,
     # If not, create a folder in the first writeable directory
     errors = []
     for (path, is_pre_dir) in paths:
-        if not is_pre_dir:
-            path = os.path.join(path, dataset_name)
+        if not is_pre_dir and sub_dir:
+            path = os.path.join(path, sub_dir)
         if not os.path.exists(path):
             try:
                 os.makedirs(path)
@@ -438,7 +441,7 @@ def _filter_columns(array, filters, combination='and'):
     return mask
 
 
-def _fetch_file(url, data_dir, resume=True, overwrite=False,
+def _fetch_file(url, data_dir=TEMP, resume=True, overwrite=False,
                 md5sum=None, username=None, password=None, handlers=[],
                 verbose=1):
     """Load requested file, downloading it if needed or requested.
@@ -449,7 +452,8 @@ def _fetch_file(url, data_dir, resume=True, overwrite=False,
         Contains the url of the file to be downloaded.
 
     data_dir: string, optional
-        Path of the data directory. Used to force data storage in a specified
+        Path of the data directory. If not absolute will be interpreted as
+        a subdirectory of data folder. Used to force data storage in a specified
         location. Default: None
 
     resume: bool, optional
@@ -484,6 +488,9 @@ def _fetch_file(url, data_dir, resume=True, overwrite=False,
     If, for any reason, the download procedure fails, all downloaded files are
     removed.
     """
+    if not os.path.isabs(data_dir):
+        data_dir = _get_dataset_dir(data_dir)
+
     # Determine data path
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
@@ -636,7 +643,7 @@ def movetree(src, dst):
         raise Exception(errors)
 
 
-def _fetch_files(data_dir, files, resume=True, mock=False, verbose=1):
+def _fetch_files(data_dir, files, resume=True, mock=False, verbose=0):
     """Load requested dataset, downloading it if needed or requested.
 
     This function retrieves files from the hard drive or download them from
