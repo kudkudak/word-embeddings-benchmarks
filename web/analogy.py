@@ -9,9 +9,9 @@ import logging
 
 logger = logging.getLogger('')
 import sklearn
-from web.datasets.analogy import *
+from .datasets.analogy import *
 from itertools import *
-from utils import batched
+from .utils import batched
 
 class SimpleAnalogySolver(sklearn.base.BaseEstimator):
     """

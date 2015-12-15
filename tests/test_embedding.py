@@ -43,13 +43,11 @@ def test_analogy_solver():
     category = data.category_high_level[ids]
 
     results = evaluate_on_analogy(w=w, X=X, y=y, category=category)
-    print results
     assert results[''] >= 0.65
     assert results['semantic'] >= 0.7
     assert results['syntactic'] >= 0.63
 
     results = evaluate_on_analogy(w=w, X=X, y=y, category=category, method="mul")
-    print results
     assert results[''] >= 0.7
     assert results['semantic'] >= 0.75
     assert results['syntactic'] >= 0.64

@@ -27,9 +27,11 @@ TEMP = tempfile.gettempdir()
 
 def _get_cluster_assignments(dataset_name, url, sep=" ", skip_header=False):
     data_dir = _get_dataset_dir("categorization", verbose=0)
-    _fetch_files(data_dir, [(dataset_name,
-                                    url,
-                                    {'uncompress': True, "move": "{0}/{0}.txt".format(dataset_name)})], verbose=0)[0]
+    _fetch_file(url=url,
+                 data_dir=data_dir,
+                 uncompress=True,
+                 move="{0}/{0}.txt".format(dataset_name),
+                 verbose=0)
     files = glob.glob(os.path.join(data_dir, dataset_name + "/*.txt"))
     X = []
     y = []
@@ -43,13 +45,8 @@ def _get_cluster_assignments(dataset_name, url, sep=" ", skip_header=False):
             y += [cluster_id] * len(lines)
     return Bunch(X=np.array(X), y=np.array(y).astype("uint"), names=np.array(names))
 
-def _get_as_pd(dataset_name, file_name, url, **read_csv_kwargs):
-    data_dir = _get_dataset_dir(dataset_name, data_dir=None,
-                                verbose=0)
-    raw_data = _fetch_files(data_dir, [(file_name, url, {})],
-                            resume=True,
-                            verbose=0)[0]
-    return pd.read_csv(raw_data, **read_csv_kwargs)
+def _get_as_pd(url, dataset_name, **read_csv_kwargs):
+    return pd.read_csv(_fetch_file(url, dataset_name, verbose=0), **read_csv_kwargs)
 
 def _change_list_to_np(dict):
     return {k: np.array(dict[k]) for k in dict}
@@ -441,159 +438,7 @@ def _filter_columns(array, filters, combination='and'):
     return mask
 
 
-def _fetch_file(url, data_dir=TEMP, resume=True, overwrite=False,
-                md5sum=None, username=None, password=None, handlers=[],
-                verbose=1):
-    """Load requested file, downloading it if needed or requested.
 
-    Parameters
-    ----------
-    url: string
-        Contains the url of the file to be downloaded.
-
-    data_dir: string, optional
-        Path of the data directory. If not absolute will be interpreted as
-        a subdirectory of data folder. Used to force data storage in a specified
-        location. Default: None
-
-    resume: bool, optional
-        If true, try to resume partially downloaded files
-
-    overwrite: bool, optional
-        If true and file already exists, delete it.
-
-    md5sum: string, optional
-        MD5 sum of the file. Checked if download of the file is required
-
-    username: string, optional
-        Username used for basic HTTP authentication
-
-    password: string, optional
-        Password used for basic HTTP authentication
-
-    handlers: list of BaseHandler, optional
-        urllib handlers passed to urllib.request.build_opener. Used by
-        advanced users to customize request handling.
-
-    verbose: int, optional
-        verbosity level (0 means no message).
-
-    Returns
-    -------
-    files: string
-        Absolute path of downloaded file.
-
-    Notes
-    -----
-    If, for any reason, the download procedure fails, all downloaded files are
-    removed.
-    """
-    if not os.path.isabs(data_dir):
-        data_dir = _get_dataset_dir(data_dir)
-
-    # Determine data path
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-
-    # Determine filename using URL
-    parse = _urllib.parse.urlparse(url)
-    file_name = os.path.basename(parse.path)
-    if file_name == '':
-        file_name = md5_hash(parse.path)
-
-    temp_file_name = file_name + ".part"
-    full_name = os.path.join(data_dir, file_name)
-    temp_full_name = os.path.join(data_dir, temp_file_name)
-    if os.path.exists(full_name):
-        if overwrite:
-            os.remove(full_name)
-        else:
-            return full_name
-    if os.path.exists(temp_full_name):
-        if overwrite:
-            os.remove(temp_full_name)
-    t0 = time.time()
-    local_file = None
-    initial_size = 0
-
-    try:
-        # Download data
-        url_opener = _urllib.request.build_opener(*handlers)
-        request = _urllib.request.Request(url)
-        request.add_header('Connection', 'Keep-Alive')
-        if username is not None and password is not None:
-            if not url.startswith('https'):
-                raise ValueError(
-                    'Authentication was requested on a non  secured URL (%s).'
-                    'Request has been blocked for security reasons.' % url)
-            # Note: HTTPBasicAuthHandler is not fitted here because it relies
-            # on the fact that the server will return a 401 error with proper
-            # www-authentication header, which is not the case of most
-            # servers.
-            encoded_auth = base64.b64encode(
-                (username + ':' + password).encode())
-            request.add_header(b'Authorization', b'Basic ' + encoded_auth)
-        if verbose > 0:
-            displayed_url = url.split('?')[0] if verbose == 1 else url
-            print('Downloading data from %s ...' % displayed_url)
-        if resume and os.path.exists(temp_full_name):
-            # Download has been interrupted, we try to resume it.
-            local_file_size = os.path.getsize(temp_full_name)
-            # If the file exists, then only download the remainder
-            request.add_header("Range", "bytes=%s-" % (local_file_size))
-            try:
-                data = url_opener.open(request)
-                content_range = data.info().get('Content-Range')
-                if (content_range is None or not content_range.startswith(
-                        'bytes %s-' % local_file_size)):
-                    raise IOError('Server does not support resuming')
-            except Exception:
-                # A wide number of errors can be raised here. HTTPError,
-                # URLError... I prefer to catch them all and rerun without
-                # resuming.
-                if verbose > 0:
-                    print('Resuming failed, try to download the whole file.')
-                return _fetch_file(
-                    url, data_dir, resume=False, overwrite=overwrite,
-                    md5sum=md5sum, username=username, password=password,
-                    handlers=handlers, verbose=verbose)
-            local_file = open(temp_full_name, "ab")
-            initial_size = local_file_size
-        else:
-            data = url_opener.open(request)
-            local_file = open(temp_full_name, "wb")
-        _chunk_read_(data, local_file, report_hook=(verbose > 0),
-                     initial_size=initial_size, verbose=verbose)
-        # temp file must be closed prior to the move
-        if not local_file.closed:
-            local_file.close()
-        shutil.move(temp_full_name, full_name)
-        dt = time.time() - t0
-        if verbose > 0:
-            print('...done. (%i seconds, %i min)' % (dt, dt // 60))
-    except _urllib.error.HTTPError as e:
-        if verbose > 0:
-            print('Error while fetching file %s. Dataset fetching aborted.' %
-                  (file_name))
-        if verbose > 1:
-            print("HTTP Error: %s, %s" % (e, url))
-        raise
-    except _urllib.error.URLError as e:
-        if verbose > 0:
-            print('Error while fetching file %s. Dataset fetching aborted.' %
-                  (file_name))
-        if verbose > 1:
-            print("URL Error: %s, %s" % (e, url))
-        raise
-    finally:
-        if local_file is not None:
-            if not local_file.closed:
-                local_file.close()
-    if md5sum is not None:
-        if (_md5_sum_file(full_name) != md5sum):
-            raise ValueError("File %s checksum verification has failed."
-                             " Dataset fetching aborted." % local_file)
-    return full_name
 
 
 def _get_dataset_descr(ds_name):
@@ -643,7 +488,10 @@ def movetree(src, dst):
         raise Exception(errors)
 
 
-def _fetch_files(data_dir, files, resume=True, mock=False, verbose=0):
+def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,
+                md5sum=None,
+                username=None, password=None, mock=False,
+                handlers=[], resume=True, verbose=0):
     """Load requested dataset, downloading it if needed or requested.
 
     This function retrieves files from the hard drive or download them from
@@ -658,14 +506,24 @@ def _fetch_files(data_dir, files, resume=True, mock=False, verbose=0):
     dataset_name: string
         Unique dataset name
 
-    files: list of (string, string, dict)
-        List of files and their corresponding url with dictionary that contains
-        options regarding the files. Eg. (file_path, url, opt). If a file_path
-        is not found in data_dir, as in data_dir/file_path the download will
-        be immediately cancelled and any downloaded files will be deleted.
-        Options supported are 'uncompress' to indicate that the file is an
-        archive, 'md5sum' to check the md5 sum of the file and 'move' if
-        renaming the file or moving it to a subfolder is needed.
+    resume: bool, optional
+        If true, try to resume partially downloaded files
+
+    overwrite: bool, optional
+        If true and file already exists, delete it.
+
+    md5sum: string, optional
+        MD5 sum of the file. Checked if download of the file is required
+
+    username: string, optional
+        Username used for basic HTTP authentication
+
+    password: string, optional
+        Password used for basic HTTP authentication
+
+    handlers: list of BaseHandler, optional
+        urllib handlers passed to urllib.request.build_opener. Used by
+        advanced users to customize request handling.
 
     data_dir: string, optional
         Path of the data directory. Used to force data storage in a specified
@@ -673,10 +531,6 @@ def _fetch_files(data_dir, files, resume=True, mock=False, verbose=0):
 
     resume: bool, optional
         If true, try resuming download if possible
-
-    mock: boolean, optional
-        If true, create empty files if the file cannot be downloaded. Test use
-        only.
 
     verbose: int, optional
         verbosity level (0 means no message).
@@ -686,14 +540,131 @@ def _fetch_files(data_dir, files, resume=True, mock=False, verbose=0):
     files: list of string
         Absolute paths of downloaded files on disk
     """
+
+    def _fetch_helper(url, data_dir=TEMP, resume=True, overwrite=False,
+                md5sum=None, username=None, password=None, handlers=[],
+                verbose=1):
+        if not os.path.isabs(data_dir):
+            data_dir = _get_dataset_dir(data_dir)
+
+        # Determine data path
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+
+        # Determine filename using URL
+        parse = _urllib.parse.urlparse(url)
+        file_name = os.path.basename(parse.path)
+        if file_name == '':
+            file_name = md5_hash(parse.path)
+
+        temp_file_name = file_name + ".part"
+        full_name = os.path.join(data_dir, file_name)
+        temp_full_name = os.path.join(data_dir, temp_file_name)
+        if os.path.exists(full_name):
+            if overwrite:
+                os.remove(full_name)
+            else:
+                return full_name
+        if os.path.exists(temp_full_name):
+            if overwrite:
+                os.remove(temp_full_name)
+        t0 = time.time()
+        local_file = None
+        initial_size = 0
+
+        try:
+            # Download data
+            url_opener = _urllib.request.build_opener(*handlers)
+            request = _urllib.request.Request(url)
+            request.add_header('Connection', 'Keep-Alive')
+            if username is not None and password is not None:
+                if not url.startswith('https'):
+                    raise ValueError(
+                        'Authentication was requested on a non  secured URL (%s).'
+                        'Request has been blocked for security reasons.' % url)
+                # Note: HTTPBasicAuthHandler is not fitted here because it relies
+                # on the fact that the server will return a 401 error with proper
+                # www-authentication header, which is not the case of most
+                # servers.
+                encoded_auth = base64.b64encode(
+                    (username + ':' + password).encode())
+                request.add_header(b'Authorization', b'Basic ' + encoded_auth)
+            if verbose > 0:
+                displayed_url = url.split('?')[0] if verbose == 1 else url
+                print('Downloading data from %s ...' % displayed_url)
+            if resume and os.path.exists(temp_full_name):
+                # Download has been interrupted, we try to resume it.
+                local_file_size = os.path.getsize(temp_full_name)
+                # If the file exists, then only download the remainder
+                request.add_header("Range", "bytes=%s-" % (local_file_size))
+                try:
+                    data = url_opener.open(request)
+                    content_range = data.info().get('Content-Range')
+                    if (content_range is None or not content_range.startswith(
+                            'bytes %s-' % local_file_size)):
+                        raise IOError('Server does not support resuming')
+                except Exception:
+                    # A wide number of errors can be raised here. HTTPError,
+                    # URLError... I prefer to catch them all and rerun without
+                    # resuming.
+                    if verbose > 0:
+                        print('Resuming failed, try to download the whole file.')
+                    return _fetch_helper(
+                        url, data_dir, resume=False, overwrite=overwrite,
+                        md5sum=md5sum, username=username, password=password,
+                        handlers=handlers, verbose=verbose)
+                local_file = open(temp_full_name, "ab")
+                initial_size = local_file_size
+            else:
+                data = url_opener.open(request)
+                local_file = open(temp_full_name, "wb")
+            _chunk_read_(data, local_file, report_hook=(verbose > 0),
+                         initial_size=initial_size, verbose=verbose)
+            # temp file must be closed prior to the move
+            if not local_file.closed:
+                local_file.close()
+            shutil.move(temp_full_name, full_name)
+            dt = time.time() - t0
+            if verbose > 0:
+                print('...done. (%i seconds, %i min)' % (dt, dt // 60))
+        except _urllib.error.HTTPError as e:
+            if verbose > 0:
+                print('Error while fetching file %s. Dataset fetching aborted.' %
+                      (file_name))
+            if verbose > 1:
+                print("HTTP Error: %s, %s" % (e, url))
+            raise
+        except _urllib.error.URLError as e:
+            if verbose > 0:
+                print('Error while fetching file %s. Dataset fetching aborted.' %
+                      (file_name))
+            if verbose > 1:
+                print("URL Error: %s, %s" % (e, url))
+            raise
+        finally:
+            if local_file is not None:
+                if not local_file.closed:
+                    local_file.close()
+        if md5sum is not None:
+            if (_md5_sum_file(full_name) != md5sum):
+                raise ValueError("File %s checksum verification has failed."
+                                 " Dataset fetching aborted." % local_file)
+        return full_name
+
+    if not os.path.isabs(data_dir):
+        data_dir = _get_dataset_dir(data_dir)
+
+
     # There are two working directories here:
     # - data_dir is the destination directory of the dataset
     # - temp_dir is a temporary directory dedicated to this fetching call. All
     #   files that must be downloaded will be in this directory. If a corrupted
     #   file is found, or a file is missing, this working directory will be
     #   deleted.
-    files = list(files)
-    files_pickle = cPickle.dumps([(file_, url) for file_, url, _ in files])
+    parse = _urllib.parse.urlparse(url)
+    file_name = os.path.basename(parse.path)
+
+    files_pickle = cPickle.dumps([(file_, url) for file_, url in zip([file_name], [url])])
     files_md5 = hashlib.md5(files_pickle).hexdigest()
     temp_dir = os.path.join(data_dir, files_md5)
 
@@ -704,53 +675,36 @@ def _fetch_files(data_dir, files, resume=True, mock=False, verbose=0):
     # Abortion flag, in case of error
     abort = None
 
-    files_ = []
-    for file_, url, opts in files:
-        # 3 possibilities:
-        # - the file exists in data_dir, nothing to do.
-        # - the file does not exists: we download it in temp_dir
-        # - the file exists in temp_dir: this can happen if an archive has been
-        #   downloaded. There is nothing to do
 
-        # Target file in the data_dir
-        target_file = os.path.join(data_dir, file_)
-        # Target file in temp dir
-        temp_target_file = os.path.join(temp_dir, file_)
-        if (abort is None and not os.path.exists(target_file) and not
-                os.path.exists(temp_target_file)):
+    # 3 possibilities:
+    # - the file exists in data_dir, nothing to do.
+    # - the file does not exists: we download it in temp_dir
+    # - the file exists in temp_dir: this can happen if an archive has been
+    #   downloaded. There is nothing to do
 
-            # We may be in a global read-only repository. If so, we cannot
-            # download files.
-            if not os.access(data_dir, os.W_OK):
-                raise ValueError('Dataset files are missing but dataset'
-                                 ' repository is read-only. Contact your data'
-                                 ' administrator to solve the problem')
+    # Target file in the data_dir
+    target_file = os.path.join(data_dir, file_name)
+    # Target file in temp dir
+    temp_target_file = os.path.join(temp_dir, file_name)
+    if (abort is None and not os.path.exists(target_file) and not
+            os.path.exists(temp_target_file)):
 
-            if not os.path.exists(temp_dir):
-                os.mkdir(temp_dir)
-            md5sum = opts.get('md5sum', None)
+        # We may be in a global read-only repository. If so, we cannot
+        # download files.
+        if not os.access(data_dir, os.W_OK):
+            raise ValueError('Dataset files are missing but dataset'
+                             ' repository is read-only. Contact your data'
+                             ' administrator to solve the problem')
 
-            dl_file = _fetch_file(url, temp_dir, resume=resume,
-                                  verbose=verbose, md5sum=md5sum,
-                                  username=opts.get('username', None),
-                                  password=opts.get('password', None),
-                                  handlers=opts.get('handlers', []))
-            if 'move' in opts:
-                # XXX: here, move is supposed to be a dir, it can be a name
-                move = os.path.join(data_dir, opts['move'])
-                move_dir = os.path.dirname(move)
-                if not os.path.exists(move_dir):
-                    os.makedirs(move_dir)
-                shutil.move(dl_file, move)
-                dl_file = move
-            if 'uncompress' in opts:
-                try:
-                    if not mock or os.path.getsize(dl_file) != 0:
-                        _uncompress_file(dl_file, verbose=verbose)
-                    else:
-                        os.remove(dl_file)
-                except Exception as e:
-                    abort = str(e)
+        if not os.path.exists(temp_dir):
+            os.mkdir(temp_dir)
+
+        dl_file = _fetch_helper(url, temp_dir, resume=resume,
+                              verbose=verbose, md5sum=md5sum,
+                              username=username,
+                              password=password,
+                              handlers=handlers)
+
         if (abort is None and not os.path.exists(target_file) and not
                 os.path.exists(temp_target_file)):
             if not mock:
@@ -762,18 +716,38 @@ def _fetch_files(data_dir, files, resume=True, mock=False, verbose=0):
                 if not os.path.exists(os.path.dirname(temp_target_file)):
                     os.makedirs(os.path.dirname(temp_target_file))
                 open(temp_target_file, 'w').close()
-        if abort is not None:
-            if os.path.exists(temp_dir):
-                shutil.rmtree(temp_dir)
-            raise IOError('Fetching aborted: ' + abort)
-        files_.append(target_file)
+
+        if move:
+            move = os.path.join(data_dir, move)
+            move_dir = os.path.dirname(move)
+            if not os.path.exists(move_dir):
+                os.makedirs(move_dir)
+            shutil.move(dl_file, move)
+            dl_file = move
+            target_file = dl_file
+
+        if uncompress:
+            try:
+                if os.path.getsize(dl_file) != 0:
+                    _uncompress_file(dl_file, verbose=verbose)
+                else:
+                    os.remove(dl_file)
+                target_file = os.path.dirname(target_file)
+            except Exception as e:
+                abort = str(e)
+
+
+    if abort is not None:
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+        raise IOError('Fetching aborted: ' + abort)
     # If needed, move files from temps directory to final directory.
     if os.path.exists(temp_dir):
         # XXX We could only moved the files requested
         # XXX Movetree can go wrong
         movetree(temp_dir, data_dir)
         shutil.rmtree(temp_dir)
-    return files_
+    return target_file
 
 
 def _tree(path, pattern=None, dictionary=False):

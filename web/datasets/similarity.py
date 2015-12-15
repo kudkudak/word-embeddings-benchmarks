@@ -29,9 +29,8 @@ def fetch_MTurk():
     Scores were scaled by factor of 2
 
     """
-    data = _get_as_pd('similarity/EN-TRUKw', 'EN-TRUK.txt',
-                      'https://www.dropbox.com/s/f1v4ve495mmd9pw/EN-TRUK.txt?dl=1',
-                      header=None, sep=" ").values
+    data = _get_as_pd('https://www.dropbox.com/s/f1v4ve495mmd9pw/EN-TRUK.txt?dl=1',
+                      'similarity', header=None, sep=" ").values
     return Bunch(X=data[:, 0:2],
                  y=2 * data[:, 2].astype(np.float))
 
@@ -64,17 +63,14 @@ def fetch_MEN(which="all", form="natural"):
     """
 
     if which == "dev":
-        data = _get_as_pd('similarity/EN-MEN-LEM-DEV', 'EN-MEN-LEM-DEV.txt',
-                          'https://www.dropbox.com/s/c0hm5dd95xapenf/EN-MEN-LEM-DEV.txt?dl=1',
-                          header=None, sep=" ")
+        data = _get_as_pd('https://www.dropbox.com/s/c0hm5dd95xapenf/EN-MEN-LEM-DEV.txt?dl=1',
+                          'similarity', header=None, sep=" ")
     elif which == "test":
-        data = _get_as_pd('similarity/EN-MEN-LEM-TEST', 'EN-MEN-LEM-TEST.txt',
-                          'https://www.dropbox.com/s/vdmqgvn65smm2ah/EN-MEN-LEM-TEST.txt?dl=1',
-                          header=None, sep=" ")
+        data = _get_as_pd('https://www.dropbox.com/s/vdmqgvn65smm2ah/EN-MEN-LEM-TEST.txt?dl=1',
+                          'similarity/EN-MEN-LEM-TEST', header=None, sep=" ")
     elif which == "all":
-        data = _get_as_pd('similarity/EN-MEN-LEM', 'EN-MEN-LEM.txt',
-                          'https://www.dropbox.com/s/b9rv8s7l32ni274/EN-MEN-LEM.txt?dl=1',
-                          header=None, sep=" ")
+        data = _get_as_pd('https://www.dropbox.com/s/b9rv8s7l32ni274/EN-MEN-LEM.txt?dl=1',
+                          'similarity', header=None, sep=" ")
     else:
         raise RuntimeError("Not recognized which parameter")
 
@@ -118,25 +114,20 @@ def fetch_WS353(which="all"):
 
     """
     if which == "all":
-        data = _get_as_pd('similarity/EN-WS353', 'EN-WS353.txt',
-                          'https://www.dropbox.com/s/eqal5qj97ajaycz/EN-WS353.txt?dl=1',
-                          header=0, sep="\t")
+        data = _get_as_pd('https://www.dropbox.com/s/eqal5qj97ajaycz/EN-WS353.txt?dl=1',
+                          'similarity', header=0, sep="\t")
     elif which == "relatedness":
-        data = _get_as_pd('similarity/EN-WSR353', 'EN-WSR353.txt',
-                          'https://www.dropbox.com/s/x94ob9zg0kj67xg/EN-WSR353.txt?dl=1',
-                          header=None, sep="\t")
+        data = _get_as_pd('https://www.dropbox.com/s/x94ob9zg0kj67xg/EN-WSR353.txt?dl=1',
+                          'similarity', header=None, sep="\t")
     elif which == "similarity":
-        data = _get_as_pd('similarity/EN-WSS353', 'EN-WSS353.txt',
-                          'https://www.dropbox.com/s/ohbamierd2kt1kp/EN-WSS353.txt?dl=1',
-                          header=None, sep="\t")
+        data = _get_as_pd('https://www.dropbox.com/s/ohbamierd2kt1kp/EN-WSS353.txt?dl=1',
+                          'similarity', header=None, sep="\t")
     elif which == "set1":
-        data = _get_as_pd('similarity/EN-WS353-SET1', 'EN-WS353-SET1.txt',
-                          'https://www.dropbox.com/s/opj6uxzh5ov8gha/EN-WS353-SET1.txt?dl=1',
-                          header=0, sep="\t")
+        data = _get_as_pd('https://www.dropbox.com/s/opj6uxzh5ov8gha/EN-WS353-SET1.txt?dl=1',
+                          'similarity', header=0, sep="\t")
     elif which == "set2":
-        data = _get_as_pd('similarity/EN-WS353-SET2', 'EN-WS353-SET2.txt',
-                          'https://www.dropbox.com/s/w03734er70wyt5o/EN-WS353-SET2.txt?dl=1',
-                          header=0, sep="\t")
+        data = _get_as_pd('https://www.dropbox.com/s/w03734er70wyt5o/EN-WS353-SET2.txt?dl=1',
+                          'similarity', header=0, sep="\t")
     else:
         raise RuntimeError("Not recognized which parameter")
 
@@ -174,9 +165,9 @@ def fetch_RG65():
     Scores were scaled by factor 10/4
 
     """
-    data = _get_as_pd('similarity/EN-RG-65', 'EN-RG-65.txt',
-                      'https://www.dropbox.com/s/chopke5zqly228d/EN-RG-65.txt?dl=1',
-                      header=None, sep="\t").values
+    data = _get_as_pd('https://www.dropbox.com/s/chopke5zqly228d/EN-RG-65.txt?dl=1',
+                      'similarity', header=None, sep="\t").values
+
     return Bunch(X=data[:, 0:2],
                  y=data[:, 2].astype(np.float) * 10.0 / 4.0)
 
@@ -202,9 +193,8 @@ def fetch_RW():
     TODO: Add notes
 
     """
-    data = _get_as_pd('similarity/EN-RW', 'EN-RW.txt',
-                      'https://www.dropbox.com/s/xhimnr51kcla62k/EN-RW.txt?dl=1',
-                      header=None, sep="\t").values
+    data = _get_as_pd('https://www.dropbox.com/s/xhimnr51kcla62k/EN-RW.txt?dl=1',
+                      'similarity', header=None, sep="\t").values
     return Bunch(X=data[:, 0:2],
                  y=data[:, 2].astype(np.float),
                  sd=np.std(data[:, 3:].astype(np.float)))
@@ -237,21 +227,17 @@ def fetch_multilingual_simlex999(which="EN"):
     """
 
     if which == "EN":
-        data = _get_as_pd('similarity/EN-MSIM999', 'EN-MSIM999.txt',
-                          'https://www.dropbox.com/s/nczc4ao6koqq7qm/EN-MSIM999.txt?dl=1',
-                          header=None, encoding='utf-8', sep=" ")
+        data = _get_as_pd('https://www.dropbox.com/s/nczc4ao6koqq7qm/EN-MSIM999.txt?dl=1',
+                          'similarity', header=None, encoding='utf-8', sep=" ")
     elif which == "DE":
-        data = _get_as_pd('similarity/DE-MSIM999', 'DE-MSIM999.txt',
-                          'https://www.dropbox.com/s/ucpwrp0ahawsdtf/DE-MSIM999.txt?dl=1',
-                          header=None, encoding='utf-8', sep=" ")
+        data = _get_as_pd('https://www.dropbox.com/s/ucpwrp0ahawsdtf/DE-MSIM999.txt?dl=1',
+                          'similarity', header=None, encoding='utf-8', sep=" ")
     elif which == "IT":
-        data = _get_as_pd('similarity/IT-MSIM999', 'IT-MSIM999.txt',
-                          'https://www.dropbox.com/s/siqjagyz8dkjb9q/IT-MSIM999.txt?dl=1',
-                          header=None, encoding='utf-8', sep=" ")
+        data = _get_as_pd('https://www.dropbox.com/s/siqjagyz8dkjb9q/IT-MSIM999.txt?dl=1',
+                          'similarity', header=None, encoding='utf-8', sep=" ")
     elif which == "RU":
-        data = _get_as_pd('similarity/RU-MSIM999', 'RU-MSIM999.txt',
-                          'https://www.dropbox.com/s/3v26edm9a31klko/RU-MSIM999.txt?dl=1',
-                          header=None, encoding='utf-8', sep=" ")
+        data = _get_as_pd('https://www.dropbox.com/s/3v26edm9a31klko/RU-MSIM999.txt?dl=1',
+                          'similaerity', header=None, encoding='utf-8', sep=" ")
     else:
         raise RuntimeError("Not recognized which parameter")
 
@@ -289,9 +275,8 @@ def fetch_simlex999():
 
     """
 
-    data = _get_as_pd('analogy/EN-SIM999', 'EN-SIM999.txt',
-                      'https://www.dropbox.com/s/0jpa1x8vpmk3ych/EN-SIM999.txt?dl=1',
-                      sep="\t")
+    data = _get_as_pd('https://www.dropbox.com/s/0jpa1x8vpmk3ych/EN-SIM999.txt?dl=1',
+                      'similarity', sep="\t")
 
     # We basically select all the columns available
     X = data[['word1', 'word2']].values

@@ -6,7 +6,7 @@
 from os import path
 import tarfile
 from itertools import islice, chain
-from six import string_types
+from six import string_types, text_type
 
 
 def any2utf8(text, errors='strict', encoding='utf8'):
@@ -28,6 +28,7 @@ _delchars = ''.join(_delchars)
 _delchars_table = dict((ord(char), None) for char in _delchars)
 
 
+
 # TODO: add support for french and german
 def standardize_string(s, remove_nonstandards_chars=True, lower=True, language="english"):
     """
@@ -46,8 +47,8 @@ def standardize_string(s, remove_nonstandards_chars=True, lower=True, language="
 
     assert isinstance(s, string_types)
 
-    if not isinstance(s, unicode):
-        s = unicode(s, "utf-8")
+    if not isinstance(s, text_type):
+        s = text_type(s, "utf-8")
 
     if language == "english":
         s = (s.lower() if lower else s)

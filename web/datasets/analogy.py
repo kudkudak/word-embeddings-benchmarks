@@ -12,7 +12,7 @@ import numpy as np
 from sklearn.utils import check_random_state
 
 from sklearn.datasets.base import Bunch
-from .utils import _get_dataset_dir, _fetch_files, _change_list_to_np
+from .utils import _get_dataset_dir, _fetch_file, _change_list_to_np
 from ..utils import standardize_string
 
 
@@ -39,11 +39,11 @@ def fetch_wordrep(subsample=None, rng=None):
     why it returns word paris
 
     """
-    data_dir = _get_dataset_dir("analogy", verbose=0)
-    path = _fetch_files(data_dir, [("EN-WORDREP",
-                                    "https://www.dropbox.com/sh/5k78h9gllvc44vt/AAALLQq-Bge605OIMlmGBbNJa?dl=1",
-                                    {'uncompress': True, "move": "EN-WORDREP/EN-WORDREP.zip"})],
-                        verbose=0)[0]
+    path = _fetch_file(url="https://www.dropbox.com/sh/5k78h9gllvc44vt/AAALLQq-Bge605OIMlmGBbNJa?dl=1",
+                       data_dir="analogy",
+                       uncompress=True,
+                       move="EN-WORDREP/EN-WORDREP.zip",
+                       verbose=0)
 
     wikipedia_dict = glob.glob(os.path.join(path, "Pairs_from_Wikipedia_and_Dictionary/*.txt"))
     wordnet = glob.glob(os.path.join(path, "Pairs_from_WordNet/*.txt"))
@@ -99,11 +99,8 @@ def fetch_google_analogy():
 
     """
 
-    data_dir = _get_dataset_dir('analogy/EN-GOOGLE', data_dir=None, verbose=0)
     url = "https://www.dropbox.com/s/eujtyfb5zem1mim/EN-GOOGLE.txt?dl=1"
-    raw_data = _fetch_files(data_dir, [("EN-GOOGLE.txt", url, {})], verbose=0)[0]
-
-    with open(raw_data, "r") as f:
+    with open(_fetch_file(url, "analogy/EN-GOOGLE", verbose=0), "r") as f:
         L = f.read().splitlines()
 
     # Simple 4 word analogy questions with categories
@@ -161,11 +158,8 @@ def fetch_msr_analogy():
 
     """
 
-    data_dir = _get_dataset_dir('analogy/EN-MSR', data_dir=None, verbose=0)
     url = "https://www.dropbox.com/s/ne0fib302jqbatw/EN-MSR.txt?dl=1"
-    path = _fetch_files(data_dir, [("EN-MSR.txt", url, {})], verbose=0)[0]
-
-    with open(path, "r") as f:
+    with open(_fetch_file(url, "analogy/EN-MSR", verbose=0), "r") as f:
         L = f.read().splitlines()
 
     # Typical 4 words analogy questions
@@ -234,14 +228,12 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
     assert which in ['all', 'train', 'test']
     assert which_scoring in ['golden', 'platinium']
 
-    data_dir = _get_dataset_dir("analogy", verbose=0)
-    path = _fetch_files(data_dir, [("EN-SEMVAL-2012-2",
-                                    "https://www.dropbox.com/sh/yjzunhyqzsu1z47/AAAjyWDfP_ZAkmmNus4YBAEHa?dl=1",
-                                     {
-                                        'uncompress': True,
-                                        "move": "EN-SEMVAL-2012-2/EN-SEMVAL-2012-2.zip"
-                                     })],
-                        verbose=0)[0]
+    path = _fetch_file(url="https://www.dropbox.com/sh/yjzunhyqzsu1z47/AAAjyWDfP_ZAkmmNus4YBAEHa?dl=1",
+                       data_dir="analogy",
+                       uncompress=True,
+                       move="EN-SEMVAL-2012-2/EN-SEMVAL-2012-2.zip",
+                       verbose=0)
+
 
     train_files = set(glob.glob(os.path.join(path, "train*.txt"))) - \
                   set(glob.glob(os.path.join(path, "train*_meta.txt")))
