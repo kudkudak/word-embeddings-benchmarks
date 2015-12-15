@@ -237,7 +237,10 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
     data_dir = _get_dataset_dir("analogy", verbose=0)
     path = _fetch_files(data_dir, [("EN-SEMVAL-2012-2",
                                     "https://www.dropbox.com/sh/yjzunhyqzsu1z47/AAAjyWDfP_ZAkmmNus4YBAEHa?dl=1",
-                                    {'uncompress': True, "move": "EN-SEMVAL-2012-2/EN-SEMVAL-2012-2.zip"})],
+                                     {
+                                        'uncompress': True,
+                                        "move": "EN-SEMVAL-2012-2/EN-SEMVAL-2012-2.zip"
+                                     })],
                         verbose=0)[0]
 
     train_files = set(glob.glob(os.path.join(path, "train*.txt"))) - \
