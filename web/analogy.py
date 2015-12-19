@@ -4,9 +4,11 @@
 
 import logging
 from collections import OrderedDict
-
+import six
+from six.moves import range
 import scipy
 import pandas as pd
+from itertools import product
 
 logger = logging.getLogger('')
 import sklearn
@@ -82,7 +84,7 @@ class SimpleAnalogySolver(sklearn.base.BaseEstimator):
         mean_vector = np.mean(w.vectors, axis=0)
         output = []
         # Batch due to memory constaints (in dot operation)
-        for id_batch, batch in enumerate(batched(xrange(len(X)), self.batch_size)):
+        for id_batch, batch in enumerate(batched(range(len(X)), self.batch_size)):
             ids = list(batch)
             X_b = X[ids]
             if id_batch % np.floor(len(X) / (10. * self.batch_size)) == 0:
@@ -197,9 +199,88 @@ def evaluate_on_analogy(w, X, y, method="add", k=None, category=None, batch_size
 
     if category is not None:
         results = OrderedDict({"all": np.mean(y_pred == y)})
+        count = OrderedDict({"all": len(y_pred)})
+        correct = OrderedDict({"all": np.sum(y_pred==y)})
         for cat in set(category):
             results[cat] = np.mean(y_pred[category == cat] == y[category == cat])
+            count[cat] = np.sum(category == cat)
+            correct[cat] = np.sum(y_pred[category == cat] == y[category == cat])
 
-        return pd.Series(results)
+        return pd.concat([pd.Series(results, name="accuracy"),
+                          pd.Series(correct, name="correct"),
+                          pd.Series(count, name="count")],
+                         axis=1)
     else:
         return np.mean(y_pred == y)
+
+
+def evaluate_on_WordRep(w, max_pairs=1000, solver_kwargs={}):
+    """
+    Evaluate on WordRep dataset
+
+    Parameters
+    ----------
+    w: Embedding instance
+
+    max_pairs: int, default: 1000
+      Each category will be constrained to maximum of max_pairs pairs
+      (which results in max_pair * (max_pairs - 1) examples)
+
+    solver_kwargs: dict, default: {}
+      Arguments passed to SimpleAnalogySolver. It is suggested to limit number of words
+      in the dictionary.
+
+    References
+    ----------
+    Bin Gao, Jiang Bian, Tie-Yan Liu (2015)
+     "WordRep: A Benchmark for Research on Learning Word Representations"
+    """
+    data = fetch_wordrep()
+    mean_vector = np.mean(w.vectors, keepdims=True, axis=0)
+    categories = set(data.category)
+
+    accuracy = {}
+    correct = {}
+    count = {}
+    for cat in categories:
+        X_cat = data.X[data.category == cat]
+        X_cat = X_cat[0:max_pairs]
+
+        logger.info("Processing {} with {} pairs, {} questions".format(cat, X_cat.shape[0]
+                                                                       , X_cat.shape[0] * (X_cat.shape[0] - 1)))
+
+        # For each category construct question-answer pairs
+        size = X_cat.shape[0] * (X_cat.shape[0] - 1)
+        X = np.zeros(shape=(size, 3), dtype="object")
+        y = np.zeros(shape=(size,), dtype="object")
+        id = 0
+        for left, right in product(X_cat, X_cat):
+            if not np.array_equal(left, right):
+                X[id, 0:2] = left
+                X[id, 2] = right[0]
+                y[id] = right[1]
+                id += 1
+
+        # Run solver
+        solver = SimpleAnalogySolver(w=w, **solver_kwargs)
+        y_pred = solver.predict(X)
+        correct[cat] = float(np.sum(y_pred == y))
+        count[cat] = size
+        accuracy[cat] = float(np.sum(y_pred == y)) / size
+
+    # Add summary results
+    correct['wikipedia'] = sum(correct[c] for c in categories if c in data.wikipedia_categories)
+    correct['all'] = sum(correct[c] for c in categories)
+    correct['wordnet'] = sum(correct[c] for c in categories if c in data.wordnet_categories)
+
+    count['wikipedia'] = sum(count[c] for c in categories if c in data.wikipedia_categories)
+    count['all'] = sum(count[c] for c in categories)
+    count['wordnet'] = sum(count[c] for c in categories if c in data.wordnet_categories)
+
+    accuracy['wikipedia'] = correct['wikipedia'] / count['wikipedia']
+    accuracy['all'] = correct['all'] / count['all']
+    accuracy['wordnet'] = correct['wordnet'] / count['wordnet']
+
+    return pd.concat([pd.Series(accuracy, name="accuracy"),
+               pd.Series(correct, name="correct"),
+               pd.Series(count, name="count")], axis=1)

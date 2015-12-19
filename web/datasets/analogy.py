@@ -33,6 +33,7 @@ def fetch_wordrep(subsample=None, rng=None):
     ----------
     TODO: Add Indian Pines references
 
+
     Notes
     -----
     This dataset is too big to calculate and store all word analogy quadruples, this is
@@ -72,9 +73,38 @@ def fetch_wordrep(subsample=None, rng=None):
         category = [category[i] for i in ids]
         category_high_level = [category_high_level[i] for i in ids]
 
+    wordnet_categories = {'Antonym',
+     'Attribute',
+     'Causes',
+     'DerivedFrom',
+     'Entails',
+     'HasContext',
+     'InstanceOf',
+     'IsA',
+     'MadeOf',
+     'MemberOf',
+     'PartOf',
+     'RelatedTo',
+     'SimilarTo'}
+
+    wikipedia_categories = {'adjective-to-adverb',
+     'all-capital-cities',
+     'city-in-state',
+     'comparative',
+     'currency',
+     'man-woman',
+     'nationality-adjective',
+     'past-tense',
+     'plural-nouns',
+     'plural-verbs',
+     'present-participle',
+     'superlative'}
+
     return Bunch(category_high_level=np.array(category_high_level),
                  X=np.array(word_pairs),
-                 category=np.array(category))
+                 category=np.array(category),
+                 wikipedia_categories=wordnet_categories,
+                 wordnet_categories=wikipedia_categories)
 
 
 def fetch_google_analogy():

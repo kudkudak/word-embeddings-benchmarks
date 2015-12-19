@@ -5,7 +5,7 @@
 
 from os import path
 import tarfile
-from io import open
+import io
 from itertools import islice, chain
 from six import string_types, text_type
 
@@ -75,5 +75,5 @@ def _open(file_, mode='r'):
             s = tarfile.open(file_)
             return s.extractfile(s.next())
         else:
-            return open(file_, mode)
+            return io.open(file_, mode)
     return file_

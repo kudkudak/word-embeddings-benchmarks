@@ -50,20 +50,20 @@ def test_analogy_solver():
     category = data.category_high_level[ids]
 
     results = evaluate_on_analogy(w=w, X=X, y=y, category=category)
-    assert results['all'] >= 0.65
-    assert results['semantic'] >= 0.7
-    assert results['syntactic'] >= 0.63
+    assert results['accuracy']['all'] >= 0.65
+    assert results['accuracy']['semantic'] >= 0.7
+    assert results['accuracy']['syntactic'] >= 0.63
 
     results = evaluate_on_analogy(w=w, X=X, y=y, category=category, method="mul")
-    assert results['all'] >= 0.7
-    assert results['semantic'] >= 0.75
-    assert results['syntactic'] >= 0.64
+    assert results['accuracy']['all'] >= 0.7
+    assert results['accuracy']['semantic'] >= 0.75
+    assert results['accuracy']['syntactic'] >= 0.64
 
     results_mul = evaluate_on_analogy(w=w, X=X, y=y, category=category, method="mul", k=400)
     results_add = evaluate_on_analogy(w=w, X=X, y=y, category=category, method="add", k=400)
-    assert results_mul['all'] >= results_add['all']
-    assert results_mul['syntactic'] >= results_add['syntactic']
-    assert results_mul['semantic'] >= results_add['semantic']
+    assert results_mul['accuracy']['all'] >= results_add['accuracy']['all']
+    assert results_mul['accuracy']['syntactic'] >= results_add['accuracy']['syntactic']
+    assert results_mul['accuracy']['semantic'] >= results_add['accuracy']['semantic']
 
 
 def test_save():

@@ -14,6 +14,7 @@ from six import iteritems
 from .utils import _open
 from .vocabulary import CountedVocabulary, OrderedVocabulary
 from six.moves import cPickle as pickle
+from six.moves import range
 from functools import partial
 from .utils import standardize_string, to_utf8
 
@@ -197,7 +198,7 @@ class Embedding(object):
             vectors = np.zeros((vocab_size, layer1_size), dtype=np.float32)
             binary_len = np.dtype("float32").itemsize * layer1_size
             index = 0
-            for line_no in xrange(vocab_size):
+            for line_no in range(vocab_size):
                 # mixed text and binary: read text first, then binary
                 word = []
                 while True:
