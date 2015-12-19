@@ -31,7 +31,7 @@ def fetch_MTurk():
     """
     data = _get_as_pd('https://www.dropbox.com/s/f1v4ve495mmd9pw/EN-TRUK.txt?dl=1',
                       'similarity', header=None, sep=" ").values
-    return Bunch(X=data[:, 0:2],
+    return Bunch(X=data[:, 0:2].astype("object"),
                  y=2 * data[:, 2].astype(np.float))
 
 
@@ -80,7 +80,7 @@ def fetch_MEN(which="all", form="natural"):
     elif form != "lem":
         raise RuntimeError("Not recognized form argument")
 
-    return Bunch(X=data.values[:, 0:2], y=data.values[:, 2:].astype(np.float) / 5.0)
+    return Bunch(X=data.values[:, 0:2].astype("object"), y=data.values[:, 2:].astype(np.float) / 5.0)
 
 
 def fetch_WS353(which="all"):
@@ -138,9 +138,9 @@ def fetch_WS353(which="all"):
     # We have also scores
     if data.values.shape[1] > 3:
         sd = np.std(data.values[:, 2:15].astype(np.float), axis=1).flatten()
-        return Bunch(X=X, y=y, sd=sd)
+        return Bunch(X=X.astype("object"), y=y, sd=sd)
     else:
-        return Bunch(X=X, y=y)
+        return Bunch(X=X.astype("object"), y=y)
 
 
 def fetch_RG65():
@@ -168,7 +168,7 @@ def fetch_RG65():
     data = _get_as_pd('https://www.dropbox.com/s/chopke5zqly228d/EN-RG-65.txt?dl=1',
                       'similarity', header=None, sep="\t").values
 
-    return Bunch(X=data[:, 0:2],
+    return Bunch(X=data[:, 0:2].astype("object"),
                  y=data[:, 2].astype(np.float) * 10.0 / 4.0)
 
 
@@ -195,7 +195,7 @@ def fetch_RW():
     """
     data = _get_as_pd('https://www.dropbox.com/s/xhimnr51kcla62k/EN-RW.txt?dl=1',
                       'similarity', header=None, sep="\t").values
-    return Bunch(X=data[:, 0:2],
+    return Bunch(X=data[:, 0:2].astype("object"),
                  y=data[:, 2].astype(np.float),
                  sd=np.std(data[:, 3:].astype(np.float)))
 
@@ -247,7 +247,7 @@ def fetch_multilingual_simlex999(which="EN"):
     y = np.mean(scores, axis=1)
     sd = np.std(scores, axis=1)
 
-    return Bunch(X=X, y=y, sd=sd)
+    return Bunch(X=X.astype("object"), y=y, sd=sd)
 
 
 def fetch_simlex999():
@@ -286,4 +286,4 @@ def fetch_simlex999():
     POS = data[['POS']].values
     assoc = data[['Assoc(USF)', 'SimAssoc333']].values
 
-    return Bunch(X=X, y=y, sd=sd, conc=conc, POS=POS, assoc=assoc)
+    return Bunch(X=X.astype("object"), y=y, sd=sd, conc=conc, POS=POS, assoc=assoc)

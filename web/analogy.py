@@ -3,15 +3,18 @@
 """
 
 import sys
-
-sys.path.insert(0, "..")
+import scipy
 import logging
-
+import pandas as pd
+from collections import OrderedDict
 logger = logging.getLogger('')
 import sklearn
 from .datasets.analogy import *
 from itertools import *
 from .utils import batched
+
+
+
 
 class SimpleAnalogySolver(sklearn.base.BaseEstimator):
     """
@@ -82,11 +85,12 @@ class SimpleAnalogySolver(sklearn.base.BaseEstimator):
         mean_vector = np.mean(w.vectors, axis=0)
         output = []
         # Batch due to memory constaints (in dot operation)
-        for batch in batched(xrange(X.shape[0]), self.batch_size):
+        for id_batch, batch in enumerate(batched(xrange(len(X)), self.batch_size)):
             ids = list(batch)
             X_b = X[ids]
-            logger.info("Processing {}/{} batch".format(int(np.ceil(ids[1] / float(self.batch_size))),
-                                                        int(np.ceil(X.shape[0] / float(self.batch_size)))))
+            if id_batch % np.floor(len(X)/(10. * self.batch_size)) == 0:
+                logger.info("Processing {}/{} batch".format(int(np.ceil(ids[1] / float(self.batch_size))),
+                                                            int(np.ceil(X.shape[0] / float(self.batch_size)))))
 
             A, B, C = np.vstack(w.get(word, mean_vector) for word in X_b[:, 0]), \
                       np.vstack(w.get(word, mean_vector) for word in X_b[:, 1]), \
@@ -109,8 +113,50 @@ class SimpleAnalogySolver(sklearn.base.BaseEstimator):
 
             output.append([words[id] for id in D.argmax(axis=0)])
 
-        return np.fromiter(chain(*output), X.dtype)
+        return np.array([item for sublist in output for item in sublist])
 
+
+def evaluate_on_semeval_2012_2(w):
+    """
+    Simple method to score embedding using SimpleAnalogySolver
+
+    Parameters
+    ----------
+    w : Embedding instance
+
+    Returns
+    -------
+    result: pandas.DataFrame
+      Results with spearman correlation per broad category with special key "all" for summary
+      spearman correlation
+    """
+    data = fetch_semeval_2012_2()
+    mean_vector = np.mean(w.vectors, axis=0, keepdims=True)
+    categories = data.y.keys()
+    results = defaultdict(list)
+    for c in categories:
+        # Get mean of left and right vector
+        prototypes = data.X_prot[c]
+        prot_left = np.mean(np.vstack(w.get(word, mean_vector) for word in prototypes[:, 0]), axis=0)
+        prot_right = np.mean(np.vstack(w.get(word, mean_vector) for word in prototypes[:, 1]), axis=0)
+
+        questions = data.X[c]
+        question_left, question_right = np.vstack(w.get(word, mean_vector) for word in questions[:, 0]), \
+            np.vstack(w.get(word, mean_vector) for word in questions[:, 1])
+
+        scores = np.dot(prot_left - prot_right, (question_left - question_right).T)
+
+        c_name = data.categories_names[c].split("_")[0]
+        # NaN happens when there are only 0s, which might happen for very rare words or
+        # very insufficient word vocabulary
+        cor = scipy.stats.spearmanr(scores, data.y[c]).correlation
+        results[c_name].append(0 if np.isnan(cor) else cor)
+
+    final_results = OrderedDict()
+    final_results['all'] = sum(sum(v) for v in results.values()) / len(categories)
+    for k in results:
+        final_results[k] = sum(results[k])/len(results[k])
+    return pd.Series(final_results)
 
 def evaluate_on_analogy(w, X, y, method="add", k=None, category=None, batch_size=100):
     """
@@ -153,9 +199,10 @@ def evaluate_on_analogy(w, X, y, method="add", k=None, category=None, batch_size
     y_pred = solver.predict(X)
 
     if category is not None:
-        results = {"": np.mean(y_pred == y)}
+        results = OrderedDict({"all": np.mean(y_pred == y)})
         for cat in set(category):
             results[cat] = np.mean(y_pred[category==cat] == y[category==cat])
-        return results
+
+        return pd.Series(results)
     else:
         return np.mean(y_pred == y)

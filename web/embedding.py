@@ -7,6 +7,7 @@ NOTE: This file was adapted from the polyglot package
 import logging
 import numpy as np
 
+from six import text_type
 from six import PY2
 from six import iteritems
 
@@ -192,7 +193,7 @@ class Embedding(object):
         with _open(fname) as fin:
             # TODO: merge words, words_seen and vectors
             words = []
-            header = unicode(fin.readline())
+            header = text_type(fin.readline())
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
             vectors = np.zeros((vocab_size, layer1_size), dtype=np.float32)
             binary_len = np.dtype("float32").itemsize * layer1_size
@@ -218,12 +219,12 @@ class Embedding(object):
         with _open(fname, 'rb') as fin:
             # TODO: merge words, words_seen and vectors
             words = []
-            header = unicode(fin.readline())
+            header = text_type(fin.readline())
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
             vectors = np.zeros(shape=(vocab_size, layer1_size), dtype=np.float32)
             for line_no, line in enumerate(fin):
                 try:
-                    parts = unicode(line, encoding="utf-8").strip().split()
+                    parts = text_type(line, encoding="utf-8").strip().split()
                 except TypeError as e:
                     parts = line.strip().split()
                 except Exception as e:

@@ -115,7 +115,11 @@ def test_analogy_fetchers():
 
     data = fetch_semeval_2012_2()
     assert len(data.X) == len(data.y) == 79
+    for k, val in data.X_prot.iteritems():
+        assert len(val.shape) == 2, "Failed parsing prototypes for " + k
 
     data = fetch_wordrep(subsample=0.7)
-    assert len(set(data.category)) == 24
+    assert len(set(data.category)) == 25
+    assert len(data.X[0]) == 2
+    assert "all-capital-cities" in set(data.category)
     assert len(set(data.category_high_level)) == 2

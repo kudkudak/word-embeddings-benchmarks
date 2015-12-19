@@ -56,7 +56,8 @@ def fetch_wordrep(subsample=None, rng=None):
     files = wikipedia_dict + wordnet
 
     for file_name in files:
-        c = os.path.basename(file_name).split(".")[0].split("-")[1].lower()
+        c = os.path.basename(file_name).split(".")[0]
+        c = c[c.index("-")+1:]
         with open(file_name, "r") as f:
             for l in f.read().splitlines():
                 word_pairs.append(standardize_string(l).split())
@@ -129,10 +130,11 @@ def fetch_google_analogy():
     for cat in category:
          category_high_level.append("syntactic" if cat in syntactic else "semantic")
 
-    return Bunch(X=np.vstack(questions),
-                 y=np.hstack(answers),
-                 category=np.hstack(category),
-                 category_high_level=np.hstack(category_high_level))
+    # dtype=object for memory efficiency
+    return Bunch(X=np.vstack(questions).astype("object"),
+                 y=np.hstack(answers).astype("object"),
+                 category=np.hstack(category).astype("object"),
+                 category_high_level=np.hstack(category_high_level).astype("object"))
 
 
 def fetch_msr_analogy():
@@ -187,8 +189,10 @@ def fetch_msr_analogy():
                                          'VBZ_VB', 'NNPOS_NN', 'JJR_JJS', 'JJS_JJR', 'NNS_NN', 'JJR_JJ',
                                          'NN_NNS', 'VB_VBZ', 'VBD_VB', 'JJS_JJ', 'NN_NNPOS', 'JJ_JJS', 'JJ_JJR'])
 
-    return Bunch(X=np.vstack(questions), y=np.hstack(answers), category=np.hstack(category),
-                 category_high_level=np.hstack(category_high_level))
+    return Bunch(X=np.vstack(questions).astype("object"),
+                 y=np.hstack(answers).astype("object"),
+                 category=np.hstack(category).astype("object"),
+                 category_high_level=np.hstack(category_high_level).astype("object"))
 
 
 # TODO: rewrite to a more standarized version
@@ -228,7 +232,7 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
     assert which in ['all', 'train', 'test']
     assert which_scoring in ['golden', 'platinium']
 
-    path = _fetch_file(url="https://www.dropbox.com/sh/yjzunhyqzsu1z47/AAAjyWDfP_ZAkmmNus4YBAEHa?dl=1",
+    path = _fetch_file(url="https://www.dropbox.com/sh/aarqsfnumx3d8ds/AAB05Mu2HdypP0pudGrNjooaa?dl=1",
                        data_dir="analogy",
                        uncompress=True,
                        move="EN-SEMVAL-2012-2/EN-SEMVAL-2012-2.zip",
@@ -266,26 +270,32 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
         with open(f) as f_gl:
             golden = f_gl.read().splitlines()
 
-        assert platinium[0] == golden[0]
+        assert platinium[0] == golden[0], ("Incorrect file for ", f)
 
         c = meta[0] + "_" + meta[1]
         categories_names[c] = meta[2] + "_" + meta[3]
         categories_descriptions[c] = meta[4]
 
-        prototypes[c] = [l.split(":") for l in platinium[0].split(",")]
+        prototypes[c] = [l.split(":") for l in \
+                         platinium[0].replace(": ", ":").replace(" ", ",").replace(".", "").split(",")]
         golden_scores[c] = {}
         platinium_scores[c] = {}
-
+        questions_raw = []
         for line_pl in platinium[1:]:
-            word_pair, score = standardize_string(line_pl).split()
-            questions[c].append(word_pair.split(":"))
+            word_pair, score = line_pl.split()
+            questions_raw.append(word_pair)
+            questions[c].append([standardize_string(w) for w in word_pair.split(":")])
             platinium_scores[c][word_pair] = score
 
         for line_g in golden[1:]:
-            word_pair, score = standardize_string(line_g).split()
+            word_pair, score = line_g.split()
             golden_scores[c][word_pair] = score
 
-    return Bunch(X_prot=_change_list_to_np(questions),
+        # Make scores a list
+        platinium_scores[c] = [platinium_scores[c][w] for w in questions_raw]
+        golden_scores[c] = [golden_scores[c][w] for w in questions_raw]
+
+    return Bunch(X_prot=_change_list_to_np(prototypes),
                  X=_change_list_to_np(questions),
                  y=scores[which_scoring],
                  categories_names=categories_names,

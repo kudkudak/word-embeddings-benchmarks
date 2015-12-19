@@ -43,13 +43,13 @@ def _get_cluster_assignments(dataset_name, url, sep=" ", skip_header=False):
 
             X += [l.split(sep) for l in lines]
             y += [cluster_id] * len(lines)
-    return Bunch(X=np.array(X), y=np.array(y).astype("uint"), names=np.array(names))
+    return Bunch(X=np.array(X, dtype="object"), y=np.array(y).astype("uint"), names=np.array(names, dtype="object"))
 
 def _get_as_pd(url, dataset_name, **read_csv_kwargs):
     return pd.read_csv(_fetch_file(url, dataset_name, verbose=0), **read_csv_kwargs)
 
 def _change_list_to_np(dict):
-    return {k: np.array(dict[k]) for k in dict}
+    return {k: np.array(dict[k], dtype="object") for k in dict}
 
 def _format_time(t):
     if t > 60:

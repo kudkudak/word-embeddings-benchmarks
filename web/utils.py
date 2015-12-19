@@ -11,10 +11,10 @@ from six import string_types, text_type
 
 def any2utf8(text, errors='strict', encoding='utf8'):
     """Convert a string (unicode or bytestring in `encoding`), to bytestring in utf8."""
-    if isinstance(text, unicode):
+    if isinstance(text, text_type):
         return text.encode('utf8')
     # do bytestring -> unicode -> utf8 full circle, to ensure valid utf8
-    return unicode(text, encoding, errors=errors).encode('utf8')
+    return text_type(text, encoding, errors=errors).encode('utf8')
 
 
 to_utf8 = any2utf8
@@ -22,6 +22,7 @@ to_utf8 = any2utf8
 # Works just as good with unicode chars
 _delchars = [chr(c) for c in range(256)]
 _delchars = [x for x in _delchars if not x.isalnum()]
+_delchars.remove('\t')
 _delchars.remove(' ')
 _delchars.remove('_')  # for instance phrases joining in word2vec
 _delchars = ''.join(_delchars)
@@ -37,7 +38,7 @@ def standardize_string(s, remove_nonstandards_chars=True, lower=True, language="
     Parameters
     -----------
     language: only "english" is now supported. If "english" will remove non-alphanumeric characters
-    lower: if True will lower string.
+    lower: if True will lower strńing.
     remove_nonstandards_chars: if True will remove non standard characters (for instance '$' or '#')
 
     Returns
