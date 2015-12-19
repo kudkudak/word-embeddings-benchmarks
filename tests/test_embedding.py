@@ -38,6 +38,7 @@ def test_semeval_solver():
     results = evaluate_on_semeval_2012_2(w)
     assert results['all'] >= 0, "Should have some results on SemEval2012"
 
+
 def test_analogy_solver():
     url = "https://www.dropbox.com/s/5occ4p7k28gvxfj/ganalogy-sg-wiki-en-400.bin?dl=1"
     file_name = _fetch_file(url, "test")

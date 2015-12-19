@@ -2,18 +2,16 @@
  Classes and function for answering analogy questions
 """
 
-import sys
-import scipy
 import logging
-import pandas as pd
 from collections import OrderedDict
+
+import scipy
+import pandas as pd
+
 logger = logging.getLogger('')
 import sklearn
 from .datasets.analogy import *
-from itertools import *
 from .utils import batched
-
-
 
 
 class SimpleAnalogySolver(sklearn.base.BaseEstimator):
@@ -36,8 +34,8 @@ class SimpleAnalogySolver(sklearn.base.BaseEstimator):
 
     Note
     ----
-    It is suggested to normalize and standardize embedding before passing it to SimpleAnalogySolver
-    Because of memory constraints, SimpleAnalogySolver **is not making a copy** of passed embeddings
+    It is suggested to normalize and standardize embedding before passing it to SimpleAnalogySolver.
+    To speed up code consider installing OpenBLAS and setting OMP_NUM_THREADS.
     """
 
     def __init__(self, w, method="add", batch_size=300, k=None):
@@ -65,7 +63,6 @@ class SimpleAnalogySolver(sklearn.base.BaseEstimator):
         """
         return np.mean(y == self.predict(X))
 
-    # TODO: rewrite for mlp!
     def predict(self, X):
         """
         Answer analogy questions
@@ -88,7 +85,7 @@ class SimpleAnalogySolver(sklearn.base.BaseEstimator):
         for id_batch, batch in enumerate(batched(xrange(len(X)), self.batch_size)):
             ids = list(batch)
             X_b = X[ids]
-            if id_batch % np.floor(len(X)/(10. * self.batch_size)) == 0:
+            if id_batch % np.floor(len(X) / (10. * self.batch_size)) == 0:
                 logger.info("Processing {}/{} batch".format(int(np.ceil(ids[1] / float(self.batch_size))),
                                                             int(np.ceil(X.shape[0] / float(self.batch_size)))))
 
@@ -142,7 +139,7 @@ def evaluate_on_semeval_2012_2(w):
 
         questions = data.X[c]
         question_left, question_right = np.vstack(w.get(word, mean_vector) for word in questions[:, 0]), \
-            np.vstack(w.get(word, mean_vector) for word in questions[:, 1])
+                                        np.vstack(w.get(word, mean_vector) for word in questions[:, 1])
 
         scores = np.dot(prot_left - prot_right, (question_left - question_right).T)
 
@@ -155,8 +152,9 @@ def evaluate_on_semeval_2012_2(w):
     final_results = OrderedDict()
     final_results['all'] = sum(sum(v) for v in results.values()) / len(categories)
     for k in results:
-        final_results[k] = sum(results[k])/len(results[k])
+        final_results[k] = sum(results[k]) / len(results[k])
     return pd.Series(final_results)
+
 
 def evaluate_on_analogy(w, X, y, method="add", k=None, category=None, batch_size=100):
     """
@@ -194,14 +192,13 @@ def evaluate_on_analogy(w, X, y, method="add", k=None, category=None, batch_size
 
     assert category is None or len(category) == y.shape[0], "Passed incorrect category list"
 
-
     solver = SimpleAnalogySolver(w=w, method=method, batch_size=batch_size, k=k)
     y_pred = solver.predict(X)
 
     if category is not None:
         results = OrderedDict({"all": np.mean(y_pred == y)})
         for cat in set(category):
-            results[cat] = np.mean(y_pred[category==cat] == y[category==cat])
+            results[cat] = np.mean(y_pred[category == cat] == y[category == cat])
 
         return pd.Series(results)
     else:

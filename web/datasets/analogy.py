@@ -18,7 +18,7 @@ from ..utils import standardize_string
 
 def fetch_wordrep(subsample=None, rng=None):
     """
-    Fetch  MSR WordRep dataset for testing both syntactic and semantic dataset
+    Fetch MSR WordRep dataset for testing both syntactic and semantic dataset
 
     Returns
     -------
@@ -135,6 +135,7 @@ def fetch_google_analogy():
                  y=np.hstack(answers).astype("object"),
                  category=np.hstack(category).astype("object"),
                  category_high_level=np.hstack(category_high_level).astype("object"))
+
 
 
 def fetch_msr_analogy():

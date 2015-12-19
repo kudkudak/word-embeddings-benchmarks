@@ -5,6 +5,7 @@
 
 from os import path
 import tarfile
+from io import open
 from itertools import islice, chain
 from six import string_types, text_type
 
