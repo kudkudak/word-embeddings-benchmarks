@@ -31,11 +31,8 @@ def count(lines):
     return Counter(words)
 
 
-class VocabularyBase(object):
+class Vocabulary(object):
     """ A set of words/tokens that have consistent IDs.
-
-    Note:
-      Words will be sorted according to their lexicographic order.
 
     Attributes:
       word_id (dictionary): Mapping from words to IDs.
@@ -49,7 +46,7 @@ class VocabularyBase(object):
           words (list/set): list or set of words.
         """
         words = self.sanitize_words(words)
-        self.word_id = {w: i for i, w in enumerate(sorted(words))}
+        self.word_id = {w: i for i, w in enumerate(words)}
         self.id_word = {i: w for w, i in iteritems(self.word_id)}
 
     def __iter__(self):
@@ -127,7 +124,7 @@ class VocabularyBase(object):
         return cls(words=words)
 
 
-class OrderedVocabulary(VocabularyBase):
+class OrderedVocabulary(Vocabulary):
     """ An ordered list of words/tokens according to their frequency.
 
     Note:

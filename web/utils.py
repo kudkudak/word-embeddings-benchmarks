@@ -64,7 +64,7 @@ def batched(iterable, size):
     sourceiter = iter(iterable)
     while True:
         batchiter = islice(sourceiter, size)
-        yield chain([batchiter.next()], batchiter)
+        yield chain([next(batchiter)], batchiter)
 
 
 def _open(file_, mode='r'):
@@ -73,7 +73,7 @@ def _open(file_, mode='r'):
         _, ext = path.splitext(file_)
         if ext in {'.bz2', '.gz'}:
             s = tarfile.open(file_)
-            return s.extractfile(s.next())
+            return s.extractfile(next(s))
         else:
             return io.open(file_, mode)
     return file_

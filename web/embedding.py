@@ -12,14 +12,13 @@ from six import PY2
 from six import iteritems
 
 from .utils import _open
-from .vocabulary import CountedVocabulary, OrderedVocabulary
+from .vocabulary import Vocabulary, CountedVocabulary, OrderedVocabulary
 from six.moves import cPickle as pickle
 from six.moves import range
 from functools import partial
 from .utils import standardize_string, to_utf8
 
 logger = logging.getLogger(__name__)
-
 
 class Embedding(object):
     """ Mapping a vocabulary to a d-dimensional points."""
@@ -79,14 +78,20 @@ class Embedding(object):
 
     def transform_words(self, f, inplace=False, lower=False):
         """ Tranform words in vocabulary """
-
         id_map = {}
+        id_map_to_new = {}
         word_count = len(self.vectors)
         if inplace:
             for id, w in enumerate(self.vocabulary.words):
-                if len(f(w)) and f(w) not in id_map:
-                    id_map[f(w)] = id
+                fw = f(w)
+                if len(fw) and (fw not in id_map):
+                    id_map[fw] = id
+                    id_map_to_new[fw] = len(id_map) - 1
                     self.vectors[len(id_map) - 1] = self.vectors[id]
+                elif len(fw) and (fw in id_map) and (fw == w):
+                    self.vectors[id_map_to_new[fw]] = self.vectors[id]
+
+
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
             self.vectors = self.vectors[0:len(id_map)]
             self.vocabulary = self.vocabulary.__class__(words)
@@ -94,7 +99,7 @@ class Embedding(object):
             return self
         else:
             for id, w in enumerate(self.vocabulary.words):
-                if len(f(w)) and f(w) not in id_map:
+                if len(f(w)) and (f(w) not in id_map or f(w) == w):
                     id_map[f(w)] = id
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
             vectors = self.vectors[[id_map[w] for w in words]]
@@ -103,6 +108,10 @@ class Embedding(object):
 
     def most_frequent(self, k, inplace=False):
         """Only most frequent k words to be included in the embeddings."""
+
+        assert isinstance(self.vocabulary, OrderedVocabulary), \
+            "most_frequent can be called only on Embedding with OrderedVocabulary"
+
         vocabulary = self.vocabulary.most_frequent(k)
         vectors = np.asarray([self[w] for w in vocabulary])
         if inplace:
@@ -124,47 +133,6 @@ class Embedding(object):
             self.vectors = vectors.T
             return self
         return Embedding(vectors=vectors.T, vocabulary=self.vocabulary)
-
-    def nearest_neighbors(self, word, top_k=10):
-        """
-        Return the nearest k words to the given `word`.
-
-        Args:
-          word (string): single word.
-          top_k (integer): decides how many neighbors to report.
-
-        Returns:
-          A list of words sorted by the distances. The closest is the first.
-
-        Note:
-          L2 metric is used to calculate distances.
-        """
-        # TODO(rmyeid): Use scikit ball tree, if scikit is available
-        point = self[word]
-        diff = self.vectors - point
-        distances = np.linalg.norm(diff, axis=1)
-        top_ids = distances.argsort()[1:top_k + 1]
-        return [self.vocabulary.id_word[i] for i in top_ids]
-
-    def distances(self, word, words):
-        """Calculate eucledean pairwise distances between `word` and `words`.
-
-        Parameters:
-          word (string): single word.
-          words (list): list of strings.
-
-        Returns:
-          numpy array of the distances.
-
-        Note:
-          L2 metric is used to calculate distances.
-        """
-
-        point = self[word]
-        vectors = np.asarray([self[w] for w in words])
-        diff = vectors - point
-        distances = np.linalg.norm(diff, axis=1)
-        return distances
 
     @staticmethod
     def from_gensim(model):
@@ -193,6 +161,7 @@ class Embedding(object):
     def _from_word2vec_binary(fname):
         with _open(fname, 'rb') as fin:
             words = []
+
             header = fin.readline()
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
             vectors = np.zeros((vocab_size, layer1_size), dtype=np.float32)
@@ -208,7 +177,7 @@ class Embedding(object):
                     if ch != b'\n':  # ignore newlines in front of words (some binary files have newline, some don't)
                         word.append(ch)
 
-                words.append(b''.join(word))
+                words.append(b''.join(word).decode("latin-1"))
                 index = line_no
                 vectors[index, :] = np.fromstring(fin.read(binary_len), dtype=np.float32)
 
@@ -216,8 +185,7 @@ class Embedding(object):
 
     @staticmethod
     def _from_word2vec_text(fname):
-        with _open(fname, 'rb') as fin:
-            # TODO: merge words, words_seen and vectors
+        with _open(fname, 'r') as fin:
             words = []
             header = fin.readline()
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
@@ -228,8 +196,6 @@ class Embedding(object):
                 except TypeError as e:
                     parts = line.strip().split()
                 except Exception as e:
-                    import pdb
-                    pdb.set_trace()
                     logger.warning("We ignored line number {} because of erros in parsing"
                                    "\n{}".format(line_no, e))
                     continue
@@ -249,6 +215,43 @@ class Embedding(object):
                 words.append(word)
 
             return words, vectors
+
+
+    @staticmethod
+    def from_glove(fname, vocab_size, dim):
+        with _open(fname, 'r') as fin:
+            words = []
+            vectors = np.zeros(shape=(vocab_size, dim), dtype=np.float32)
+            for line_no, line in enumerate(fin):
+                try:
+                    parts = text_type(line, encoding="utf-8").strip().split()
+                except TypeError as e:
+                    parts = line.strip().split()
+                except Exception as e:
+                    logger.warning("We ignored line number {} because of erros in parsing"
+                                   "\n{}".format(line_no, e))
+                    continue
+                # We differ from Gensim implementation.
+                # Our assumption that a difference of one happens because of having a
+                # space in the word.
+                if len(parts) == dim + 1:
+                    word, vectors[line_no] = parts[0], list(map(np.float32, parts[1:]))
+                elif len(parts) == dim + 2:
+                    word, vectors[line_no] = parts[:2], list(map(np.float32, parts[2:]))
+                    word = u" ".join(word)
+                else:
+                    logger.warning("We ignored line number {} because of unrecognized "
+                                   "number of columns {}".format(line_no, parts[:-dim]))
+                    continue
+
+                words.append(word)
+
+            return Embedding(vocabulary=OrderedVocabulary(words), vectors=vectors)
+
+
+    @staticmethod
+    def from_dict(d):
+        return Embedding(vectors=d.values(), vocabulary=Vocabulary(d.keys()))
 
     @staticmethod
     def to_word2vec(w, fname, binary=False):
@@ -277,10 +280,6 @@ class Embedding(object):
     def from_word2vec(fname, fvocab=None, binary=False):
         """
         Load the input-hidden weight matrix from the original C word2vec-tool format.
-
-        Note that the information stored in the file is incomplete (the binary tree is missing),
-        so while you can query for word similarity etc., you cannot continue training
-        with a model loaded this way.
 
         `binary` is a boolean indicating whether the data is in binary word2vec format.
         Word counts are read from `fvocab` filename, if set (this is the file generated

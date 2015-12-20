@@ -14,6 +14,7 @@ from web.datasets.categorization import fetch_AP, fetch_BLESS, fetch_battig,\
     fetch_ESSLI_1a, fetch_ESSLI_2b, fetch_ESSLI_2c
 
 from itertools import product
+from six import iteritems
 
 def test_categorization_fetchers():
     data = fetch_battig()
@@ -115,7 +116,7 @@ def test_analogy_fetchers():
 
     data = fetch_semeval_2012_2()
     assert len(data.X) == len(data.y) == 79
-    for k, val in data.X_prot.iteritems():
+    for k, val in iteritems(data.X_prot):
         assert len(val.shape) == 2, "Failed parsing prototypes for " + k
 
     data = fetch_wordrep(subsample=0.7)
