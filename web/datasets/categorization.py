@@ -7,6 +7,7 @@
 from sklearn.datasets.base import Bunch
 from .utils import _get_cluster_assignments
 
+
 def fetch_AP():
     """
     Fetch Almuhareb and Abdulrahman categorization dataset
@@ -45,7 +46,6 @@ def fetch_BLESS():
         dictionary-like object. Keys of interest:
         'X': words
         'y': cluster assignment
-        'names': cluster names
 
     References
     ----------
@@ -70,7 +70,6 @@ def fetch_battig():
         dictionary-like object. Keys of interest:
         'X': words
         'y': cluster assignment
-        'names': cluster names
         'freq': frequency of response
         'frequency': Kucera-Francis word frequency
         'rank': rank of frequence within response
@@ -91,12 +90,15 @@ def fetch_battig():
     Included in this dataset are all words from the Battig and Montague (1969) norms listed with
     freq > 1.
 
+    This is not the same dataset as 'battig' in Baroni et al. "Don’t count, predict! A systematic comparison of
+    context-counting vs. context-predicting semantic vectors"
     """
     data = _get_cluster_assignments(dataset_name="EN-BATTIG",
                                     url="https://www.dropbox.com/sh/ckp4yu7k7xl7u2a/AABhmpgU3ake3T9liA9BR8EBa?dl=1",
                                     sep=",", skip_header=True)
-    return Bunch(X=data.X[:, 0], y=data.y, names=data.names,
+    return Bunch(X=data.X[:, 0], y=data.y,
                  freq=data.X[:, 1], frequency=data.X[:, 2], rank=data.X[:, 3], rfreq=data.X[:, 4])
+
 
 
 def fetch_ESSLI_2c():
@@ -112,7 +114,6 @@ def fetch_ESSLI_2c():
         dictionary-like object. Keys of interest:
         'X': words
         'y': cluster assignment
-        'names': cluster names
 
     References
     ----------
@@ -140,7 +141,6 @@ def fetch_ESSLI_2b():
         dictionary-like object. Keys of interest:
         'X': words
         'y': cluster assignment
-        'names': cluster names
 
     References
     ----------
@@ -168,7 +168,6 @@ def fetch_ESSLI_1a():
         dictionary-like object. Keys of interest:
         'X': words
         'y': cluster assignment
-        'names': cluster names
 
     References
     ----------
