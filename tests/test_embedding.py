@@ -3,14 +3,23 @@
 """
  Tests for embedding
 """
-
+import tempfile
 from web.datasets.utils import _fetch_file
 from web.embedding import Embedding
 from web.datasets.analogy import fetch_google_analogy
+from web.datasets.similarity import fetch_simlex999
+from web.similarity import evaluate_similarity
 from web.analogy import evaluate_on_analogy, evaluate_on_semeval_2012_2, evaluate_on_WordRep
 from web.utils import standardize_string
 import numpy as np
+from os import path
 
+def test_similarity():
+    url = "https://www.dropbox.com/s/rm756kjvckxa5ol/top100-sgns-googlenews-300.bin?dl=1"
+    file_name = _fetch_file(url, "test")
+    w = Embedding.from_word2vec(file_name, binary=True)
+    data = fetch_simlex999()
+    assert evaluate_similarity(w, data.X, data.y) > 0
 
 
 def test_standardize():
@@ -31,14 +40,16 @@ def test_standardize():
         if standardize_string(word, lower=False):
             assert np.array_equal(w[word], w3[standardize_string(word, lower=False)])
 
+
 def test_standardize_preserve_identity():
-    d = {"Spider": [3,4,5], "spider": [1,2,3], "spideR": [3,2,4]}
+    d = {"Spider": [3, 4, 5], "spider": [1, 2, 3], "spideR": [3, 2, 4]}
     w3 = Embedding.from_dict(d)
     w4 = w3.standardize_words(inplace=False, lower=True)
     assert w4['spider'][0] == 1
     w3.standardize_words(inplace=True, lower=True)
     assert w3['spider'][0] == 1
 
+# TODO: takes too long
 def test_semeval_solver():
     url = "https://www.dropbox.com/s/rm756kjvckxa5ol/top100-sgns-googlenews-300.bin?dl=1"
     file_name = _fetch_file(url, "test")
@@ -82,15 +93,17 @@ def test_analogy_solver():
     assert results_mul['accuracy']['semantic'] >= results_add['accuracy']['semantic']
 
 
-def test_save(tmpdir):
+def test_save():
     url = "https://www.dropbox.com/s/5occ4p7k28gvxfj/ganalogy-sg-wiki-en-400.bin?dl=1"
     file_name = _fetch_file(url, "test")
     w = Embedding.from_word2vec(file_name, binary=True)
-    w.to_word2vec(w, tmpdir.mkdir("web").join("tmp.bin"), binary=True)
-    w.to_word2vec(w, tmpdir.mkdir("web").join("tmp.txt"), binary=True)
-    w2 = Embedding.from_word2vec(tmpdir.mkdir("web").join("tmp.bin"), binary=True)
-    w3 = Embedding.from_word2vec(tmpdir.mkdir("web").join("tmp.txt"), binary=False)
+
+    dirpath = tempfile.mkdtemp()
+    w.to_word2vec(w, path.join(dirpath, "tmp.bin"), binary=True)
+    w.to_word2vec(w, path.join(dirpath, "tmp.txt"), binary=False)
+    w2 = Embedding.from_word2vec(path.join(dirpath, "tmp.bin"), binary=True)
+    w3 = Embedding.from_word2vec(path.join(dirpath, "tmp.txt"), binary=False)
     assert np.array_equal(w.vectors, w2.vectors)
     assert w.vocabulary.words == w2.vocabulary.words
-    assert np.array_equal(w.vectors, w3.vectors)
+    assert np.sum(np.abs(w.vectors - w3.vectors)) < 1e-5
     assert w.vocabulary.words == w3.vocabulary.words

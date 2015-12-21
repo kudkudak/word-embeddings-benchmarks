@@ -251,7 +251,8 @@ class Embedding(object):
 
     @staticmethod
     def from_dict(d):
-        return Embedding(vectors=d.values(), vocabulary=Vocabulary(d.keys()))
+        # Python3 dict.values() returns a view
+        return Embedding(vectors=list(d.values()), vocabulary=Vocabulary(d.keys()))
 
     @staticmethod
     def to_word2vec(w, fname, binary=False):
@@ -274,7 +275,7 @@ class Embedding(object):
                 if binary:
                     fout.write(to_utf8(word) + b" " + vector.tostring())
                 else:
-                    fout.write(to_utf8("%s %s\n" % (word, ' '.join("%f" % val for val in vector))))
+                    fout.write(to_utf8("%s %s\n" % (word, ' '.join("%.15f" % val for val in vector))))
 
     @staticmethod
     def from_word2vec(fname, fvocab=None, binary=False):
