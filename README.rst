@@ -4,14 +4,17 @@ Word Embeddings Benchmarks
 .. image:: https://travis-ci.com/kudkudak/word-embeddings-benchmarks.svg?token=tTz7fwsU6YC2L4acExst&branch=dev
     :target: https://travis-ci.org/kudkudak/word-embeddings-benchmarks
 
-Word Embedding Benchmark (web) package is focused on very quick assesment of embedding.
-The research goal of the package is to quantify what knowledge can be stored in the embeddings.
+Word Embedding Benchmark (web) package is focused on providing a platform for communicating results in the word
+embedding field. The research goal is to understand better landscape of published embeddings.
 
-Goals:
+Features:
 
-* intuitive scikit-learn like API
-* completness (analogy, similarity, categorization and more tasks)
-* easy to extend by new tasks and embeddings
+* scikit-learn API and conventions
+* 17 popular datasets
+* 5 embeddings
+* methods to solve analogy, similarity and categorization tasks
+* easy to run as scripts
+
 
 Dependencies
 ======
@@ -25,7 +28,7 @@ This package uses setuptools. You can install it running:
 
     python setup.py install
 
-If you hve problems during this installation. First you may need to install the dependencies:
+If you have problems during this installation. First you may need to install the dependencies:
 
     pip install -r requirements.txt
 
@@ -43,6 +46,4 @@ You can also install it in development mode with::
 
     python setup.py develop
 
-Examples:
-=========
 

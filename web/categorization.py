@@ -8,6 +8,7 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 from sklearn.cluster import AgglomerativeClustering, KMeans
+from web.embedding import Embedding
 
 def calculate_purity(y_true, y_pred):
     """
@@ -74,6 +75,10 @@ def evaluate_categorization(w, X, y, method="all", seed=None):
     KMedoids method was excluded as empirically didn't improve over KMeans (for categorization
     tasks available in the package).
     """
+
+    if isinstance(w, dict):
+        w = Embedding.from_dict(w)
+
     assert method in ["all", "kmeans", "agglomerative"], "Uncrecognized method"
 
     mean_vector = np.mean(w.vectors, axis=0, keepdims=True)

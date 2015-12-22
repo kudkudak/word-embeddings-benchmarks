@@ -14,4 +14,10 @@ def test_similarity():
     file_name = _fetch_file(url, "test")
     w = Embedding.from_word2vec(file_name, binary=True)
     data = fetch_simlex999()
-    assert evaluate_similarity(w, data.X, data.y) > 0
+
+    result_1 = evaluate_similarity(w, data.X, data.y)
+    result_2 =  evaluate_similarity(dict(zip(w.vocabulary.words, w.vectors)), data.X, data.y)
+
+    assert result_2 > 0
+    assert result_1 == result_2, "evaluate_similarity should return same result for dict and Embedding instance"
+

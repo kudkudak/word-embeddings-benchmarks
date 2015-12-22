@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 import sklearn
 from .datasets.analogy import *
 from .utils import batched
-
+from web.embedding import Embedding
 
 class SimpleAnalogySolver(sklearn.base.BaseEstimator):
     """
@@ -121,7 +121,8 @@ def evaluate_on_semeval_2012_2(w):
 
     Parameters
     ----------
-    w : Embedding instance
+    w : Embedding or dict
+      Embedding or dict instance.
 
     Returns
     -------
@@ -129,6 +130,9 @@ def evaluate_on_semeval_2012_2(w):
       Results with spearman correlation per broad category with special key "all" for summary
       spearman correlation
     """
+    if isinstance(w, dict):
+        w = Embedding.from_dict(w)
+
     data = fetch_semeval_2012_2()
     mean_vector = np.mean(w.vectors, axis=0, keepdims=True)
     categories = data.y.keys()
@@ -164,7 +168,8 @@ def evaluate_on_analogy(w, X, y, method="add", k=None, category=None, batch_size
 
     Parameters
     ----------
-    w : Embedding instance
+    w : Embedding or dict
+      Embedding or dict instance.
 
     method : {"add", "mul"}
       Method to use when finding analogy answer, see "Improving Distributional Similarity
@@ -191,6 +196,9 @@ def evaluate_on_analogy(w, X, y, method="add", k=None, category=None, batch_size
       Results, where each key is for given category and special empty key "" stores
       summarized accuracy across categories
     """
+
+    if isinstance(w, dict):
+        w = Embedding.from_dict(w)
 
     assert category is None or len(category) == y.shape[0], "Passed incorrect category list"
 
@@ -220,7 +228,8 @@ def evaluate_on_WordRep(w, max_pairs=1000, solver_kwargs={}):
 
     Parameters
     ----------
-    w: Embedding instance
+    w : Embedding or dict
+      Embedding or dict instance.
 
     max_pairs: int, default: 1000
       Each category will be constrained to maximum of max_pairs pairs
@@ -235,8 +244,10 @@ def evaluate_on_WordRep(w, max_pairs=1000, solver_kwargs={}):
     Bin Gao, Jiang Bian, Tie-Yan Liu (2015)
      "WordRep: A Benchmark for Research on Learning Word Representations"
     """
+    if isinstance(w, dict):
+        w = Embedding.from_dict(w)
+
     data = fetch_wordrep()
-    mean_vector = np.mean(w.vectors, keepdims=True, axis=0)
     categories = set(data.category)
 
     accuracy = {}
