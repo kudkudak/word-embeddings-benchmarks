@@ -3,6 +3,8 @@
 
 """Utilities for package"""
 
+import bz2
+import gzip
 from os import path
 import tarfile
 import io
@@ -71,9 +73,10 @@ def _open(file_, mode='r'):
     """Open file object given filenames, open files or even archives."""
     if isinstance(file_, string_types):
         _, ext = path.splitext(file_)
-        if ext in {'.bz2', '.gz'}:
-            s = tarfile.open(file_)
-            return s.extractfile(next(s))
+        if ext in {'.gz'}:
+            return gzip.GzipFile(file_, mode=mode)
+        if ext in {'.bz2'}:
+            return bz2.BZ2File(file_, mode=mode)
         else:
             return io.open(file_, mode)
     return file_

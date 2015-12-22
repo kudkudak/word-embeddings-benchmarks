@@ -269,7 +269,6 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
                        move="EN-SEMVAL-2012-2/EN-SEMVAL-2012-2.zip",
                        verbose=0)
 
-
     train_files = set(glob.glob(os.path.join(path, "train*.txt"))) - \
                   set(glob.glob(os.path.join(path, "train*_meta.txt")))
     test_files = set(glob.glob(os.path.join(path, "test*.txt"))) - \

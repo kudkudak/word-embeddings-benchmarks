@@ -172,6 +172,8 @@ def _chunk_read_(response, local_file, chunk_size=8192, report_hook=None,
         The downloaded file.
 
     """
+
+
     try:
         if total_size is None:
             total_size = response.info().get('Content-Length').strip()
@@ -488,10 +490,10 @@ def movetree(src, dst):
         raise Exception(errors)
 
 
-def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,
-                md5sum=None,
-                username=None, password=None, mock=False,
-                handlers=[], resume=True, verbose=0):
+# TODO: refactor, this function is a mess, it was adapted from other project
+# and it might have not been an optimal choice
+def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,md5sum=None,
+                username=None, password=None, mock=False, handlers=[], resume=True, verbose=0):
     """Load requested dataset, downloading it if needed or requested.
 
     This function retrieves files from the hard drive or download them from
@@ -509,8 +511,13 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,
     resume: bool, optional
         If true, try to resume partially downloaded files
 
-    overwrite: bool, optional
-        If true and file already exists, delete it.
+    uncompress: bool, optional
+        If true, will uncompress zip
+
+    move: str, optional
+        If True, will move downloaded file to given relative path.
+        NOTE: common usage is zip_file_id/zip_file.zip together
+        with uncompress set to True
 
     md5sum: string, optional
         MD5 sum of the file. Checked if download of the file is required
@@ -541,6 +548,7 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,
         Absolute paths of downloaded files on disk
     """
 
+    # TODO: move to global scope and rename
     def _fetch_helper(url, data_dir=TEMP, resume=True, overwrite=False,
                 md5sum=None, username=None, password=None, handlers=[],
                 verbose=1):
@@ -675,20 +683,26 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,
     # Abortion flag, in case of error
     abort = None
 
-
-    # 3 possibilities:
-    # - the file exists in data_dir, nothing to do.
+    # 2 possibilities:
+    # - the file exists in data_dir, nothing to do (we have to account for move parameter here)
     # - the file does not exists: we download it in temp_dir
-    # - the file exists in temp_dir: this can happen if an archive has been
-    #   downloaded. There is nothing to do
 
     # Target file in the data_dir
     target_file = os.path.join(data_dir, file_name)
-    # Target file in temp dir
-    temp_target_file = os.path.join(temp_dir, file_name)
-    if (abort is None and not os.path.exists(target_file) and not
-            os.path.exists(temp_target_file)):
 
+    # Change move so we always uncompress to some folder (this is important for
+    # detecting already downloaded files)
+    # Ex. glove.4B.zip -> glove.4B/glove.4B.zip
+    if uncompress and not move:
+        dirname, _ = os.path.splitext(file_)
+        move = os.path.join(dirname, os.path.basename(file_))
+
+    if (abort is None
+        and not os.path.exists(target_file)
+        and (not move or not os.path.exists(os.path.dirname(os.path.join(data_dir, move))))):
+
+        # Target file in temp dir
+        temp_target_file = os.path.join(temp_dir, file_name)
         # We may be in a global read-only repository. If so, we cannot
         # download files.
         if not os.access(data_dir, os.W_OK):
@@ -735,7 +749,15 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,
                 target_file = os.path.dirname(target_file)
             except Exception as e:
                 abort = str(e)
+    else:
+        if verbose > 0:
+            print "File already downloaded, skipping"
 
+        if move:
+            target_file = os.path.join(data_dir, move)
+
+        if uncompress:
+            target_file = os.path.dirname(target_file)
 
     if abort is not None:
         if os.path.exists(temp_dir):
