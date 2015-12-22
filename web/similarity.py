@@ -3,9 +3,6 @@
 """
 
 import sys
-
-sys.path.insert(0, "..")
-
 from web.analogy import *
 
 def evaluate_similarity(w, X, y):
