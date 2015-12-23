@@ -12,22 +12,43 @@ def fetch_AP():
     """
     Fetch Almuhareb and Abdulrahman categorization dataset
 
-    Parameters
-    -------
-
     Returns
     -------
     data : sklearn.datasets.base.Bunch
         dictionary-like object. Keys of interest:
         'clusters': dict of arrays of words representing
+
     References
     ----------
-    TODO: Add Indian Pines references
+    Almuhareb et al., "Concept learning and categorization from the web", 2005
 
     Notes
     -----
-    TODO: <>
-
+    Authors description:
+    Our goal was to create a dataset balanced with respect to
+    three factors: class type, frequency, and ambiguity.
+    First of all, we aimed to include one class of nouns for
+    each of the 21 unique beginners of the WordNet noun
+    hierarchy4
+    . We chose subclasses for each of these 21
+    beginners that would represent a reasonably natural cluster:
+    e.g., the hyponym social occasion for the unique beginner
+    event. From each such class, we selected between 13 and 21
+    nouns to be representative concepts for the class (e.g.,
+    ceremony, feast, and graduation for the class social
+    occasion).
+    Secondly, we aimed to include about 1/3 high frequency
+    nouns, 1/3 medium frequency, and 1/3 low frequency. Noun
+    frequencies where estimated using the British National
+    Corpus. We considered as highly frequent those nouns with
+    frequency 1,000 or more; as medium frequent the nouns
+    with between 1,000 and 100 occurrences; and those between
+    100 and 5 as low frequent.
+    Thirdly, we wanted the dataset to be balanced as to
+    ambiguity, estimated on the basis of the number of senses in
+    WordNet. Nouns with 4 or more senses were considered
+    highly ambiguous; nouns with 2 or 3 senses medium
+    ambiguous; and nouns with a single sense as not ambiguous.
     """
     return _get_cluster_assignments(dataset_name="EN-AP",
                                     url="https://www.dropbox.com/sh/6xu1c1aan8f83p3/AACMyoLwncNhRkUkqvGurYB6a?dl=1")
@@ -49,12 +70,12 @@ def fetch_BLESS():
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Baroni et al. "How we BLESSed distributional semantic evaluation", 2011
 
     Notes
     -----
-    TODO: <>
-
+    Data set includes 200 concrete nouns (100 animate and 100 inanimate nouns)
+    from different classes (e.g., tools, clothing, vehicles, animals, etc.).
     """
     return _get_cluster_assignments(dataset_name="EN-BLESS",
                                     url="https://www.dropbox.com/sh/5qbl5cmh17o3eh0/AACyCEqpMktdMI05zwphJRI7a?dl=1")
@@ -105,9 +126,6 @@ def fetch_ESSLI_2c():
     """
     Fetch ESSLI 2c task categorization dataset
 
-    Parameters
-    -------
-
     Returns
     -------
     data : sklearn.datasets.base.Bunch
@@ -117,12 +135,16 @@ def fetch_ESSLI_2c():
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Originally published at http://wordspace.collocations.de/doku.php/data:esslli2008:verb_categorization
 
     Notes
     -----
-    TODO: <>
-
+    The goal of the sub-task is to group verbs into semantic categories. The data set consists of 45 verbs,
+    belonging to 9 semantic classes. The classification scheme is inspired by P. Vinson & G. Vigliocco (2007),
+    “Semantic Feature Production Norms for a Large Set of Objects and Events”, Behavior Research Methods,
+    which in turn closely follows the classification proposed in Levin (1993). The data set consists of 44 concrete
+    nouns, belonging to 6 semantic categories (four animates and two inanimates). The nouns are included in the
+    feature norms described in McRae et al. (2005)
     """
     return _get_cluster_assignments(dataset_name="EN-ESSLI-2c",
                                     url="https://www.dropbox.com/sh/d3mcyl3b5mawfhm/AAABygW1rguhI4L0XSw_I68ta?dl=1")

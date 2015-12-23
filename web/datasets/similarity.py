@@ -22,12 +22,15 @@ def fetch_MTurk():
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Radinsky, Kira et al., "A Word at a Time: Computing Word Relatedness Using Temporal Semantic Analysis", 2011
 
     Notes
     -----
-    Scores were scaled by factor of 2
+    Human labeled examples of word semantic relatedness. The data pairs were generated using an algorithm as
+    described in the paper by [K. Radinsky, E. Agichtein, E. Gabrilovich, S. Markovitch.].
+    Each pair of words was evaluated by 10 people on a scale of 1-5.
 
+    Additionally scores were multiplied by factor of 2.
     """
     data = _get_as_pd('https://www.dropbox.com/s/f1v4ve495mmd9pw/EN-TRUK.txt?dl=1',
                       'similarity', header=None, sep=" ").values
@@ -40,7 +43,7 @@ def fetch_MEN(which="all", form="natural"):
     Fetch MEN dataset for testing similarity and relatedness
 
     Parameters
-    -------
+    ----------
     which : "all", "test" or "dev"
     form : "lem" or "natural"
 
@@ -53,15 +56,18 @@ def fetch_MEN(which="all", form="natural"):
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Published at http://clic.cimec.unitn.it/~elia.bruni/MEN.html.
 
     Notes
     -----
     Scores for MEN are calculated differently than in WS353 or SimLex999.
-    Furthermore scores where rescaled to 0 - 10 scale to match standard scaling
+    Furthermore scores where rescaled to 0 - 10 scale to match standard scaling.
 
+    The MEN Test Collection contains two sets of English word pairs (one for training and one for testing)
+    together with human-assigned similarity judgments, obtained by crowdsourcing using Amazon Mechanical
+    Turk via the CrowdFlower interface. The collection can be used to train and/or test computer algorithms
+    implementing semantic similarity and relatedness measures.
     """
-
     if which == "dev":
         data = _get_as_pd('https://www.dropbox.com/s/c0hm5dd95xapenf/EN-MEN-LEM-DEV.txt?dl=1',
                           'similarity', header=None, sep=" ")
@@ -89,12 +95,18 @@ def fetch_WS353(which="all"):
     relatedness similarity
 
     Parameters
-    -------
+    ----------
     which : 'all': for both relatedness and attributional similarity,
             'relatedness': for relatedness similarity
             'similarity': for attributional similarity
             'set1': as divided by authors
             'set2': as divided by authors
+
+    References
+    ----------
+    Finkelstein, Gabrilovich, "Placing Search in Context: The Concept Revisited†", 2002
+    Agirre, Eneko et al., "A Study on Similarity and Relatedness Using Distributional and WordNet-based Approaches",
+    2009
 
     Returns
     -------
@@ -103,15 +115,6 @@ def fetch_WS353(which="all"):
         'X': matrix of 2 words per column,
         'y': vector with scores,
         'sd': vector of std of scores if available (for set1 and set2)
-
-    References
-    ----------
-    TODO: Add Indian Pines references
-
-    Notes
-    -----
-    TODO: Add notes
-
     """
     if which == "all":
         data = _get_as_pd('https://www.dropbox.com/s/eqal5qj97ajaycz/EN-WS353.txt?dl=1',
@@ -158,12 +161,11 @@ def fetch_RG65():
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Rubenstein, Goodenough, "Contextual correlates of synonymy", 1965
 
     Notes
     -----
     Scores were scaled by factor 10/4
-
     """
     data = _get_as_pd('https://www.dropbox.com/s/chopke5zqly228d/EN-RG-65.txt?dl=1',
                       'similarity', header=None, sep="\t").values
@@ -186,12 +188,17 @@ def fetch_RW():
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Published at http://www-nlp.stanford.edu/~lmthang/morphoNLM/.
 
     Notes
     -----
-    TODO: Add notes
-
+    2034 word pairs that are relatively rare with human similarity scores. Rare word selection: our choices of
+    rare words (word1) are based on their frequencies – based on five bins (5, 10], (10, 100], (100, 1000],
+    (1000, 10000], and the affixes they possess. To create a diverse set of candidates, we randomly
+    select 15 words for each configuration (a frequency bin, an affix). At the scale of Wikipedia,
+    a word with frequency of 1-5 is most likely a junk word, and even restricted to words with
+    frequencies above five, there are still many non-English words. To counter such problems,
+    each word selected is required to have a non-zero number of synsets in WordNet(Miller, 1995).
     """
     data = _get_as_pd('https://www.dropbox.com/s/xhimnr51kcla62k/EN-RW.txt?dl=1',
                       'similarity', header=None, sep="\t").values
@@ -218,14 +225,22 @@ def fetch_multilingual_simlex999(which="EN"):
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Published at http://technion.ac.il/~ira.leviant/MultilingualVSMdata.html.
 
     Notes
     -----
-    Scores for EN are different than the original SimLex999 dataset
+    Scores for EN are different than the original SimLex999 dataset.
 
+    Authors description:
+    Multilingual SimLex999 resource consists of translations of the SimLex999 word similarity data set to
+    three languages: German, Italian and Russian. Each of the translated datasets is scored by
+    13 human judges (crowdworkers) - all fluent speakers of its language. For consistency, we
+    also collected human judgments for the original English corpus according to the same protocol
+    applied to the other languages. This dataset allows to explore the impact of the "judgement language"
+    (the language in which word pairs are presented to the human judges) on the resulted similarity scores
+    and to evaluate vector space models on a truly multilingual setup (i.e. when both the training and the
+    test data are multilingual).
     """
-
     if which == "EN":
         data = _get_as_pd('https://www.dropbox.com/s/nczc4ao6koqq7qm/EN-MSIM999.txt?dl=1',
                           'similarity', header=None, encoding='utf-8', sep=" ")
@@ -267,14 +282,17 @@ def fetch_simlex999():
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Hill, Felix et al., "Simlex-999: Evaluating semantic models with (genuine) similarity estimation", 2014
 
     Notes
     -----
-    TODO: Add notes
-
+     SimLex-999 is a gold standard resource for the evaluation of models that learn the meaning of words and concepts.
+     SimLex-999 provides a way of measuring how well models capture similarity, rather than relatedness or
+     association. The scores in SimLex-999 therefore differ from other well-known evaluation datasets
+     such as WordSim-353 (Finkelstein et al. 2002). The following two example pairs illustrate the
+     difference - note that clothes are not similar to closets (different materials, function etc.),
+     even though they are very much related: coast - shore 9.00 9.10, clothes - closet 1.96 8.00
     """
-
     data = _get_as_pd('https://www.dropbox.com/s/0jpa1x8vpmk3ych/EN-SIM999.txt?dl=1',
                       'similarity', sep="\t")
 
