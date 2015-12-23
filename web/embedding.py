@@ -26,14 +26,13 @@ class Embedding(object):
     def __init__(self, vocabulary, vectors):
         self.vocabulary = vocabulary
         self.vectors = np.asarray(vectors)
-
-        if len(self.vocabulary) != self.vectors.shape[0]:
+        if len(self.vocabulary) > self.vectors.shape[0]:
             raise ValueError("Vocabulary has {} items but we have {} "
-                             "vectors. It might be due to standardizing procedure removing some words."
+                             "vectors."
                              .format(len(vocabulary), self.vectors.shape[0]))
 
         if len(self.vocabulary.words) != len(set(self.vocabulary.words)):
-            raise ValueError("Vocabulary has duplicates. Most likely standardizing words has introduced duplicates")
+            logger.warning("Vocabulary has duplicates.")
 
     def __getitem__(self, k):
         return self.vectors[self.vocabulary[k]]
@@ -161,12 +160,10 @@ class Embedding(object):
     def _from_word2vec_binary(fname):
         with _open(fname, 'rb') as fin:
             words = []
-
             header = fin.readline()
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
             vectors = np.zeros((vocab_size, layer1_size), dtype=np.float32)
             binary_len = np.dtype("float32").itemsize * layer1_size
-            index = 0
             for line_no in range(vocab_size):
                 # mixed text and binary: read text first, then binary
                 word = []
@@ -178,8 +175,7 @@ class Embedding(object):
                         word.append(ch)
 
                 words.append(b''.join(word).decode("latin-1"))
-                index = line_no
-                vectors[index, :] = np.fromstring(fin.read(binary_len), dtype=np.float32)
+                vectors[line_no, :] = np.fromstring(fin.read(binary_len), dtype=np.float32)
 
             return words, vectors
 
@@ -188,6 +184,7 @@ class Embedding(object):
         with _open(fname, 'r') as fin:
             words = []
             header = fin.readline()
+            ignored = 0
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
             vectors = np.zeros(shape=(vocab_size, layer1_size), dtype=np.float32)
             for line_no, line in enumerate(fin):
@@ -203,17 +200,19 @@ class Embedding(object):
                 # Our assumption that a difference of one happens because of having a
                 # space in the word.
                 if len(parts) == layer1_size + 1:
-                    word, vectors[line_no] = parts[0], list(map(np.float32, parts[1:]))
+                    word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[1:]))
                 elif len(parts) == layer1_size + 2:
-                    word, vectors[line_no] = parts[:2], list(map(np.float32, parts[2:]))
+                    word, vectors[line_no - ignored] = parts[:2], list(map(np.float32, parts[2:]))
                     word = u" ".join(word)
                 else:
+                    ignored += 1
                     logger.warning("We ignored line number {} because of unrecognized "
                                    "number of columns {}".format(line_no, parts[:-layer1_size]))
                     continue
 
                 words.append(word)
-
+            if ignored:
+                vectors = vectors[0:-ignored]
             return words, vectors
 
 
@@ -221,6 +220,7 @@ class Embedding(object):
     def from_glove(fname, vocab_size, dim):
         with _open(fname, 'r') as fin:
             words = []
+            ignored = 0
             vectors = np.zeros(shape=(vocab_size, dim), dtype=np.float32)
             for line_no, line in enumerate(fin):
                 try:
@@ -228,25 +228,20 @@ class Embedding(object):
                 except TypeError as e:
                     parts = line.strip().split()
                 except Exception as e:
+                    ignored += 1
                     logger.warning("We ignored line number {} because of erros in parsing"
                                    "\n{}".format(line_no, e))
                     continue
-                # We differ from Gensim implementation.
-                # Our assumption that a difference of one happens because of having a
-                # space in the word.
-                if len(parts) == dim + 1:
-                    word, vectors[line_no] = parts[0], list(map(np.float32, parts[1:]))
-                elif len(parts) == dim + 2:
-                    word, vectors[line_no] = parts[:2], list(map(np.float32, parts[2:]))
-                    word = u" ".join(word)
-                else:
-                    logger.warning("We ignored line number {} because of unrecognized "
-                                   "number of columns {}".format(line_no, parts[:-dim]))
-                    continue
 
-                words.append(word)
+                try:
+                    word, vectors[line_no - ignored] = " ".join(parts[0:len(parts) - dim]), list(map(np.float32, parts[len(parts) - dim:]))
+                    words.append(word)
+                except Exception as e:
+                    ignored += 1
+                    logger.warning("We ignored line number {} because of erros in parsing"
+                                   "\n{}".format(line_no, e))
 
-            return Embedding(vocabulary=OrderedVocabulary(words), vectors=vectors)
+            return Embedding(vocabulary=OrderedVocabulary(words), vectors=vectors[0:len(words)])
 
 
     @staticmethod

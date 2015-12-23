@@ -144,12 +144,14 @@ def fetch_ESSLI_2b():
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Originally published at
+    http://wordspace.collocations.de/doku.php/data:esslli2008:abstract_concrete_nouns_discrimination.
 
     Notes
     -----
-    TODO: <>
-
+    The data set consists of 40 nouns extracted from the MRC Psycholinguistic Database, with ratings by human subjects
+    on the concreteness scale. The nouns have been classified into three classes: HI, LO and ME being highly,
+    low and medium abstract nouns.
     """
     return _get_cluster_assignments(dataset_name="EN-ESSLI-2b",
                                     url="https://www.dropbox.com/sh/7gdv52gy9vb4mf2/AACExLgHdbvbBrRZBP6CcdDaa?dl=1")
@@ -157,10 +159,7 @@ def fetch_ESSLI_2b():
 
 def fetch_ESSLI_1a():
     """
-    Fetch ESSLI 1a task categorization dataset
-
-    Parameters
-    -------
+    Fetch ESSLI 1a task categorization dataset.
 
     Returns
     -------
@@ -171,12 +170,13 @@ def fetch_ESSLI_1a():
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Originally published at http://wordspace.collocations.de/doku.php/data:esslli2008:concrete_nouns_categorization.
 
     Notes
     -----
-    TODO: <>
-
+    The goal of the sub-task is to group concrete nouns into semantic categories.
+    The data set consists of 44 concrete nouns, belonging to 6 semantic categories (four animates and two inanimates).
+    The nouns are included in the feature norms described in McRae et al. (2005)
     """
     return _get_cluster_assignments(dataset_name="EN-ESSLI-1a",
                                     url="https://www.dropbox.com/sh/h362565r1sk5wii/AADjcdYy3nRo-MjuFUSvb-0ya?dl=1")

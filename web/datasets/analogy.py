@@ -31,7 +31,8 @@ def fetch_wordrep(subsample=None, rng=None):
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Gao, Bin and Bian, Jiang and Liu, Tie-Yan,
+    "Wordrep: A benchmark for research on learning word representations", 2014
 
 
     Notes
@@ -122,7 +123,8 @@ def fetch_google_analogy():
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Mikolov, Tomas and Sutskever, Ilya and Chen, Kai and Corrado, Greg S and Dean, Jeff,
+    "Distributed representations of words and phrases and their compositionality", 2013
 
     Notes
     -----
@@ -183,14 +185,17 @@ def fetch_msr_analogy():
 
     References
     ----------
-    TODO: Add Indian Pines references
+    Originally published at http://research.microsoft.com/en-us/projects/rnn/.
 
     Notes
     -----
-    TODO: Add notes
-
+    Authors description: "more precisely, we tagged 267M words of newspaper text
+    with Treebank POS tags (Marcus et al., 1993). We then selected 100 of the most frequent comparative adjectives
+    (words labeled JJR); 100 of the most frequent plural nouns (NNS); 100 of the most frequent possessive nouns
+    (NN POS); and 100 of the most frequent base form verbs (VB).
+    We then systematically generated analogy questions by randomly matching each of the 100 words with 5 other words
+    from the same category, and creating variants.
     """
-
     url = "https://www.dropbox.com/s/ne0fib302jqbatw/EN-MSR.txt?dl=1"
     with open(_fetch_file(url, "analogy/EN-MSR", verbose=0), "r") as f:
         L = f.read().splitlines()
@@ -251,14 +256,21 @@ def fetch_semeval_2012_2(which="all", which_scoring="golden"):
 
     References
     ----------
-    TODO: Add Indian Pines references
+    DA Jurgens et al.,
+    "Measuring degrees of relational similarity. In *SEM 2012: The First Joint Conference on Lexical
+    and Computational Semantics", 2012
 
     Notes
     -----
     Dataset used in competition was scored as in golden scoring (which_scoring) parameter, however
     organiser have release improved labels afterwards (platinium scoring)
 
-
+    The task is, given two pairs of words, A:B and C:D, determine the degree to which the semantic relations between
+    A and B are similar to those between C and D. Unlike the more familiar task of semantic relation identification,
+    which assigns each word pair to a discrete semantic relation class, this task recognizes the continuous range of
+    degrees of relational similarity. The challenge is to determine the degrees of relational similarity between a
+    given reference word pair and a variety of other pairs, mostly in the same general semantic relation class as the
+    reference pair.
     """
     assert which in ['all', 'train', 'test']
     assert which_scoring in ['golden', 'platinium']

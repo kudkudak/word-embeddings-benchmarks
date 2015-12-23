@@ -237,7 +237,7 @@ def fetch_multilingual_simlex999(which="EN"):
                           'similarity', header=None, encoding='utf-8', sep=" ")
     elif which == "RU":
         data = _get_as_pd('https://www.dropbox.com/s/3v26edm9a31klko/RU-MSIM999.txt?dl=1',
-                          'similaerity', header=None, encoding='utf-8', sep=" ")
+                          'similarity', header=None, encoding='utf-8', sep=" ")
     else:
         raise RuntimeError("Not recognized which parameter")
 
