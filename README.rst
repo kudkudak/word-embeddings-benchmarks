@@ -4,19 +4,21 @@ Word Embeddings Benchmarks
 .. image:: https://travis-ci.com/kudkudak/word-embeddings-benchmarks.svg?token=tTz7fwsU6YC2L4acExst&branch=dev
     :target: https://travis-ci.org/kudkudak/word-embeddings-benchmarks
 
-Word Embedding Benchmark (web) package is focused on providing a platform for communicating results in the word
-embedding field. The research goal is to understand better landscape of published embeddings.
+Word Embedding Benchmark (web) package is focused on providing methods for easy evaluating and reporting
+results on common benchmarks (analogy, similarity and categorization).
 
-To evaluate your embedding it is enough to convert it to word2vec format (or python dict pickle)
-and run `./scripts/eval_on_all.py <path-to-file>`
+Research goal of the package is to help drive research in word embeddings by easily accessible reproducible
+results. This should also help to answer question if we should devise new methods for evaluating word embeddings.
+
+To evaluate your embedding (converted to word2vec or python dict pickle)
+on all fast-running benchmarks execute `./scripts/eval_on_all.py <path-to-file>`.
 
 Features:
 
 * scikit-learn API and conventions
 * 17 popular datasets
-* 6 word embeddings (in multiple variations)
+* 6 word embeddings
 * methods to solve analogy, similarity and categorization tasks
-* easy to run as scripts
 
 
 Dependencies
@@ -50,3 +52,6 @@ You can also install it in development mode with::
     python setup.py develop
 
 
+Examples
+========
+See `examples` folder.

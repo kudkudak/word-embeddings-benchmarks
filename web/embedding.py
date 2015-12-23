@@ -10,6 +10,7 @@ import numpy as np
 from six import text_type
 from six import PY2
 from six import iteritems
+from six import string_types
 
 from .utils import _open
 from .vocabulary import Vocabulary, CountedVocabulary, OrderedVocabulary
@@ -17,6 +18,8 @@ from six.moves import cPickle as pickle
 from six.moves import range
 from functools import partial
 from .utils import standardize_string, to_utf8
+
+from sklearn.metrics import pairwise_distances
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +125,8 @@ class Embedding(object):
     def normalize_words(self, ord=2, inplace=False):
         """Normalize embeddings matrix row-wise.
 
-        Parameters:
+        Parameters
+        ----------
           ord: normalization order. Possible values {1, 2, 'inf', '-inf'}
         """
         if ord == 2:
@@ -132,6 +136,46 @@ class Embedding(object):
             self.vectors = vectors.T
             return self
         return Embedding(vectors=vectors.T, vocabulary=self.vocabulary)
+
+
+    def nearest_neighbors(self, word, k=1, exclude=[], metric="cosine"):
+        """
+        Find nearest neighbor of given word
+
+        Parameters
+        ----------
+          word: string or vector
+            Query word or vector.
+
+          k: int, default: 1
+            Number of nearest neihbours to return.
+
+          metric: string, default: 'cosine'
+            Metric to use.
+
+          exclude: list, default: []
+            Words to omit in answer
+
+        Returns
+        -------
+          n: list
+            Nearest neighbors.
+        """
+        if isinstance(word, string_types):
+            assert word in self, "Word not found in the vocabulary"
+            v = self[word]
+        else:
+            v = word
+
+        D = pairwise_distances(self.vectors, v.reshape(1, -1), metric=metric)
+
+        if isinstance(word, string_types):
+            D[self.vocabulary.word_id[word]] = D.max()
+
+        for w in exclude:
+            D[self.vocabulary.word_id[w]] = D.max()
+
+        return [self.vocabulary.id_word[id] for id in D.argsort(axis=0).flatten()[0:k]]
 
     @staticmethod
     def from_gensim(model):
