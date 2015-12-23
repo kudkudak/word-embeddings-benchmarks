@@ -71,8 +71,8 @@ class Embedding(object):
         except KeyError as e:
             return default
 
-    def standardize_words(self, lower=False, inplace=False):
-        return self.transform_words(partial(standardize_string, lower=lower, remove_nonstandards_chars=True),
+    def standardize_words(self, lower=False, clean_words=False, inplace=False):
+        return self.transform_words(partial(standardize_string, lower=lower, clean_words=clean_words),
                                     inplace=inplace)
 
     def transform_words(self, f, inplace=False, lower=False):

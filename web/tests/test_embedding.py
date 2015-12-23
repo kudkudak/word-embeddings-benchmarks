@@ -19,18 +19,18 @@ def test_standardize():
     file_name = _fetch_file(url, "test")
 
     w = Embedding.from_word2vec(file_name, binary=True)
-    w2 = w.standardize_words(inplace=False)
+    w2 = w.standardize_words(inplace=False, lower=False, clean_words=True)
     w3 = Embedding.from_word2vec(file_name, binary=True)
     assert len(w2.words) == 95
     for word in w.vocabulary.words:
-        if standardize_string(word, lower=False):
-            assert np.array_equal(w[word], w2[standardize_string(word, lower=False)])
+        if standardize_string(word, lower=False, clean_words=True):
+            assert np.array_equal(w[word], w2[standardize_string(word, lower=False, clean_words=True)])
 
-    w3.standardize_words(inplace=True)
+    w3.standardize_words(inplace=True, clean_words=True, lower=False)
     assert len(w3.words) == 95
     for word in w.vocabulary.words:
         if standardize_string(word, lower=False):
-            assert np.array_equal(w[word], w3[standardize_string(word, lower=False)])
+            assert np.array_equal(w[word], w3[standardize_string(word, lower=False, clean_words=True)])
 
 
 def test_standardize_preserve_identity():

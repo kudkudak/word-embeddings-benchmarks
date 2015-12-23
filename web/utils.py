@@ -27,14 +27,13 @@ _delchars = [chr(c) for c in range(256)]
 _delchars = [x for x in _delchars if not x.isalnum()]
 _delchars.remove('\t')
 _delchars.remove(' ')
+_delchars.remove('-')
 _delchars.remove('_')  # for instance phrases joining in word2vec
 _delchars = ''.join(_delchars)
 _delchars_table = dict((ord(char), None) for char in _delchars)
 
 
-
-# TODO: add support for french and german
-def standardize_string(s, remove_nonstandards_chars=True, lower=True, language="english"):
+def standardize_string(s, clean_words=True, lower=True, language="english"):
     """
     Ensures common convention across code. Converts to utf-8 and removes non-alphanumeric characters
 
@@ -42,7 +41,7 @@ def standardize_string(s, remove_nonstandards_chars=True, lower=True, language="
     -----------
     language: only "english" is now supported. If "english" will remove non-alphanumeric characters
     lower: if True will lower strńing.
-    remove_nonstandards_chars: if True will remove non standard characters (for instance '$' or '#')
+    only_alphanumeric: if True will remove non alphanumeric characters (for instance '$', '#' or 'ł')
 
     Returns
     ----------
@@ -56,7 +55,7 @@ def standardize_string(s, remove_nonstandards_chars=True, lower=True, language="
 
     if language == "english":
         s = (s.lower() if lower else s)
-        s = (s.translate(_delchars_table) if remove_nonstandards_chars else s)
+        s = (s.translate(_delchars_table) if clean_words else s)
         return s
     else:
         raise NotImplementedError("Not implemented standarization for other languages")

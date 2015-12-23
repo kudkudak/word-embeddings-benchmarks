@@ -14,7 +14,7 @@ Features:
 
 * scikit-learn API and conventions
 * 17 popular datasets
-* 6 distinct embeddings (in multiple variations)
+* 6 word embeddings (in multiple variations)
 * methods to solve analogy, similarity and categorization tasks
 * easy to run as scripts
 
