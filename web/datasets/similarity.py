@@ -207,7 +207,7 @@ def fetch_RW():
                  sd=np.std(data[:, 3:].astype(np.float)))
 
 
-def fetch_multilingual_simlex999(which="EN"):
+def fetch_multilingual_SimLex999(which="EN"):
     """
     Fetch Multilingual SimLex999 dataset for testing attributional similarity
 
@@ -265,7 +265,7 @@ def fetch_multilingual_simlex999(which="EN"):
     return Bunch(X=X.astype("object"), y=y, sd=sd)
 
 
-def fetch_simlex999():
+def fetch_SimLex999():
     """
     Fetch SimLex999 dataset for testing attributional similarity
 

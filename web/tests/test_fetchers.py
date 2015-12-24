@@ -7,7 +7,7 @@
 from web.datasets.analogy import fetch_google_analogy, fetch_msr_analogy, fetch_semeval_2012_2, \
     fetch_wordrep
 
-from web.datasets.similarity import fetch_simlex999, fetch_WS353, fetch_multilingual_simlex999, \
+from web.datasets.similarity import fetch_SimLex999, fetch_WS353, fetch_multilingual_SimLex999, \
     fetch_MEN, fetch_MTurk, fetch_RW, fetch_RG65
 
 from web.datasets.categorization import fetch_AP, fetch_BLESS, fetch_battig,\
@@ -97,11 +97,11 @@ def test_ws353_fetcher():
 
 
 def test_simlex999_fetchers():
-    data = fetch_simlex999()
+    data = fetch_SimLex999()
     assert data.X.shape == (999, 2)
 
     for lang in ["EN", "RU", "IT", "DE"]:
-        data = fetch_multilingual_simlex999(which=lang)
+        data = fetch_multilingual_SimLex999(which=lang)
         assert data.y.shape[0] == data.sd.shape[0]
         assert data.X.shape[0] == 999
 

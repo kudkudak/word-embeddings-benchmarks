@@ -162,7 +162,8 @@ def evaluate_on_semeval_2012_2(w):
     return pd.Series(final_results)
 
 
-def evaluate_on_analogy(w, X, y, method="add", k=None, category=None, batch_size=100):
+
+def evaluate_analogy(w, X, y, method="add", k=None, category=None, batch_size=100):
     """
     Simple method to score embedding using SimpleAnalogySolver
 
@@ -188,7 +189,9 @@ def evaluate_on_analogy(w, X, y, method="add", k=None, category=None, batch_size
       Increase to increase memory consumption and decrease running time
 
     category : list, default: None
-      Category of each example. Will calculate accuracy per category as well
+      Category of each example, if passed function returns accuracy per category
+      in addition to the overall performance.
+      Analogy datasets have "category" field that can be supplied here.
 
     Returns
     -------
@@ -196,7 +199,6 @@ def evaluate_on_analogy(w, X, y, method="add", k=None, category=None, batch_size
       Results, where each key is for given category and special empty key "" stores
       summarized accuracy across categories
     """
-
     if isinstance(w, dict):
         w = Embedding.from_dict(w)
 

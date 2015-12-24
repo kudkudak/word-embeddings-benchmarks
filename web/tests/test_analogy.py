@@ -8,7 +8,7 @@ import numpy as np
 from web.datasets.utils import _fetch_file
 from web.embedding import Embedding
 from web.datasets.analogy import fetch_google_analogy
-from web.analogy import evaluate_on_analogy, evaluate_on_semeval_2012_2, evaluate_on_WordRep
+from web.analogy import evaluate_analogy, evaluate_on_semeval_2012_2, evaluate_on_WordRep
 
 
 # TODO: takes too long
@@ -38,18 +38,18 @@ def test_analogy_solver():
     X, y = data.X[ids], data.y[ids]
     category = data.category_high_level[ids]
 
-    results = evaluate_on_analogy(w=w, X=X, y=y, category=category)
+    results = evaluate_analogy(w=w, X=X, y=y, category=category)
     assert results['accuracy']['all'] >= 0.65
     assert results['accuracy']['semantic'] >= 0.7
     assert results['accuracy']['syntactic'] >= 0.63
 
-    results = evaluate_on_analogy(w=w, X=X, y=y, category=category, method="mul")
+    results = evaluate_analogy(w=w, X=X, y=y, category=category, method="mul")
     assert results['accuracy']['all'] >= 0.7
     assert results['accuracy']['semantic'] >= 0.75
     assert results['accuracy']['syntactic'] >= 0.64
 
-    results_mul = evaluate_on_analogy(w=w, X=X, y=y, category=category, method="mul", k=400)
-    results_add = evaluate_on_analogy(w=w, X=X, y=y, category=category, method="add", k=400)
+    results_mul = evaluate_analogy(w=w, X=X, y=y, category=category, method="mul", k=400)
+    results_add = evaluate_analogy(w=w, X=X, y=y, category=category, method="add", k=400)
     assert results_mul['accuracy']['all'] >= results_add['accuracy']['all']
     assert results_mul['accuracy']['syntactic'] >= results_add['accuracy']['syntactic']
     assert results_mul['accuracy']['semantic'] >= results_add['accuracy']['semantic']
