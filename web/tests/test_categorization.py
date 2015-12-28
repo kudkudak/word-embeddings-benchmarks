@@ -1,5 +1,5 @@
 import numpy as np
-from web.categorization import calculate_purity, evaluate_categorization
+from web.evaluate import calculate_purity, evaluate_categorization
 from web.embedding import Embedding
 from web.datasets.utils import _fetch_file
 from web.datasets.categorization import fetch_ESSLI_2c

@@ -39,3 +39,5 @@ if __name__ == '__main__':
  
     output.close()
     logger.info("Finished Saved " + str(i) + " articles")
+
+    # TODO: add shuffle?

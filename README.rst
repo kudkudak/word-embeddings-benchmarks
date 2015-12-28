@@ -8,7 +8,8 @@ Word Embedding Benchmark (web) package is focused on providing methods for easy 
 results on common benchmarks (analogy, similarity and categorization).
 
 Research goal of the package is to help drive research in word embeddings by easily accessible reproducible
-results. This should also help to answer question if we should devise new methods for evaluating word embeddings.
+results (as there is a lot of contradictory results in the literature right now).
+This should also help to answer question if we should devise new methods for evaluating word embeddings.
 
 To evaluate your embedding (converted to word2vec or python dict pickle)
 on all fast-running benchmarks execute `./scripts/eval_on_all.py <path-to-file>`.

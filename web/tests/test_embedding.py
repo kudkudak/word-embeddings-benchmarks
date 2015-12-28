@@ -7,9 +7,9 @@ import tempfile
 from web.datasets.utils import _fetch_file
 from web.embedding import Embedding
 from web.datasets.analogy import fetch_google_analogy
-from web.datasets.similarity import fetch_simlex999
+from web.datasets.similarity import fetch_SimLex999
 from web.similarity import evaluate_similarity
-from web.analogy import evaluate_analogy, evaluate_on_semeval_2012_2, evaluate_on_WordRep
+from web.evaluate import evaluate_analogy, evaluate_on_semeval_2012_2, evaluate_on_WordRep
 from web.utils import standardize_string
 import numpy as np
 from os import path
