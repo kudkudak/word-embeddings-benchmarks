@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
-
 """
  Evaluation functions
 """
-
 import logging
-
 import numpy as np
-
 from sklearn.cluster import AgglomerativeClustering, KMeans
-
 from .datasets.similarity import fetch_MEN, fetch_WS353, fetch_SimLex999, fetch_MTurk, fetch_RG65, fetch_RW
 from .datasets.categorization import fetch_AP, fetch_battig, fetch_BLESS, fetch_ESSLI_1a, fetch_ESSLI_2b, \
     fetch_ESSLI_2c
 from web.analogy import *
+from six import iteritems
 from web.embedding import Embedding
 
 logger = logging.getLogger(__name__)
@@ -25,7 +21,7 @@ def calculate_purity(y_true, y_pred):
     Parameters
     ----------
     y_true: array, shape: (n_samples, 1)
-      True cluster labels.
+      True cluster labels
 
     y_pred: array, shape: (n_samples, 1)
       Cluster assingment.
@@ -116,6 +112,54 @@ def evaluate_categorization(w, X, y, method="all", seed=None):
         best_purity = max(purity, best_purity)
 
     return best_purity
+
+
+
+def evaluate_on_semeval_2012_2(w):
+    """
+    Simple method to score embedding using SimpleAnalogySolver
+
+    Parameters
+    ----------
+    w : Embedding or dict
+      Embedding or dict instance.
+
+    Returns
+    -------
+    result: pandas.DataFrame
+      Results with spearman correlation per broad category with special key "all" for summary
+      spearman correlation
+    """
+    if isinstance(w, dict):
+        w = Embedding.from_dict(w)
+
+    data = fetch_semeval_2012_2()
+    mean_vector = np.mean(w.vectors, axis=0, keepdims=True)
+    categories = data.y.keys()
+    results = defaultdict(list)
+    for c in categories:
+        # Get mean of left and right vector
+        prototypes = data.X_prot[c]
+        prot_left = np.mean(np.vstack(w.get(word, mean_vector) for word in prototypes[:, 0]), axis=0)
+        prot_right = np.mean(np.vstack(w.get(word, mean_vector) for word in prototypes[:, 1]), axis=0)
+
+        questions = data.X[c]
+        question_left, question_right = np.vstack(w.get(word, mean_vector) for word in questions[:, 0]), \
+                                        np.vstack(w.get(word, mean_vector) for word in questions[:, 1])
+
+        scores = np.dot(prot_left - prot_right, (question_left - question_right).T)
+
+        c_name = data.categories_names[c].split("_")[0]
+        # NaN happens when there are only 0s, which might happen for very rare words or
+        # very insufficient word vocabulary
+        cor = scipy.stats.spearmanr(scores, data.y[c]).correlation
+        results[c_name].append(0 if np.isnan(cor) else cor)
+
+    final_results = OrderedDict()
+    final_results['all'] = sum(sum(v) for v in results.values()) / len(categories)
+    for k in results:
+        final_results[k] = sum(results[k]) / len(results[k])
+    return pd.Series(final_results)
 
 
 def evaluate_analogy(w, X, y, method="add", k=None, category=None, batch_size=100):

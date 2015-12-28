@@ -8,7 +8,9 @@
 
  ./evaluate_embeddings <output_dir>
 """
-from web import embeddings, evaluate_on_all
+from web.evaluate import evaluate_on_all
+from web import embeddings
+from six import iteritems
 from multiprocessing import Pool
 from os import path
 import logging
@@ -32,7 +34,7 @@ for dim in [50, 100, 200, 300]:
     jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "wiki-6B"}])
 
 for dim in [25, 50, 100, 200]:
-    jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "twitter"}])
+    jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "twitter-27B"}])
 
 for corpus in ["common-crawl-42B", "common-crawl-840B"]:
     jobs.append(["fetch_GloVe", {"dim": 300, "corpus": corpus}])
@@ -55,10 +57,10 @@ jobs.append(["fetch_SG_GoogleNews", {}])
 
 def run_job(j):
     fn, kwargs = j
-    outf = path.join(opts.output_dir, fn + "_" + "_".join(str(k) + "=" + str(v) for k,v in iteritems(kwargs)))
+    outf = path.join(opts.output_dir, fn + "_" + "_".join(str(k) + "=" + str(v) for k,v in iteritems(kwargs))) + ".csv"
     logger.info("Processing " + outf)
-    w = getattr(embeddings, fn)(**kwargs)
     if not path.exists(outf):
+        w = getattr(embeddings, fn)(**kwargs)
         res = evaluate_on_all(w)
         res.to_csv(outf)
 

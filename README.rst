@@ -13,6 +13,7 @@ This should also help to answer question if we should devise new methods for eva
 
 To evaluate your embedding (converted to word2vec or python dict pickle)
 on all fast-running benchmarks execute `./scripts/eval_on_all.py <path-to-file>`.
+See `here <https://github.com/kudkudak/word-embeddings-benchmarks/wiki>`_ results for embeddings available in the package.
 
 Features:
 

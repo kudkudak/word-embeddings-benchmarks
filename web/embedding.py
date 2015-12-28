@@ -11,7 +11,6 @@ from six import text_type
 from six import PY2
 from six import iteritems
 from six import string_types
-
 from .utils import _open
 from .vocabulary import Vocabulary, CountedVocabulary, OrderedVocabulary
 from six.moves import cPickle as pickle

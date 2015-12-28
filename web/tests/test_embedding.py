@@ -4,15 +4,14 @@
  Tests for embedding
 """
 import tempfile
+from os import path
+
+import numpy as np
+
 from web.datasets.utils import _fetch_file
 from web.embedding import Embedding
-from web.datasets.analogy import fetch_google_analogy
-from web.datasets.similarity import fetch_SimLex999
-from web.similarity import evaluate_similarity
-from web.evaluate import evaluate_analogy, evaluate_on_semeval_2012_2, evaluate_on_WordRep
 from web.utils import standardize_string
-import numpy as np
-from os import path
+
 
 def test_standardize():
     url = "https://www.dropbox.com/s/rm756kjvckxa5ol/top100-sgns-googlenews-300.bin?dl=1"

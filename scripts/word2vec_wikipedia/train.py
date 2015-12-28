@@ -28,25 +28,9 @@ if __name__ == '__main__':
     inp, outp1 = sys.argv[1:4]
 
     # NOTE: it doesn't shuffle data between passes, which might degrade performance
-    # TODO: try calling few times with shuffled data?
-    """
-    For CBOW
-    and SG model, we reimplement these two models
-    since the original word2vec tool uses SGD
-    but cannot shuffle the data
-    """
-    # model = Word2Vec(LineSentence(inp),
-    #                  size=300,
-    #                  window=5,
-    #                  min_count=10, # This should have negligible effect on Wikipedia
-    #                  alpha=0.025,
-    #                  negative=10,
-    #                  sample=1e-5,
-    #                  iter=1,
-    #                  workers=5)
-
     model = Word2Vec(LineSentence(inp),
                      size=300,
+                     negative=5,
                      workers=5)
 
     model.save_word2vec_format(outp1, binary=False)

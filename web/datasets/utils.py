@@ -699,7 +699,8 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,md5sum=None,
 
     if (abort is None
         and not os.path.exists(target_file)
-        and (not move or not os.path.exists(os.path.dirname(os.path.join(data_dir, move))))):
+        and (not move or (move and uncompress and not os.path.exists(os.path.dirname(os.path.join(data_dir, move)))))
+            or (move and not uncompress and not os.path.exists(os.path.join(data_dir, move)))):
 
         # Target file in temp dir
         temp_target_file = os.path.join(temp_dir, file_name)
@@ -770,7 +771,6 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,md5sum=None,
         movetree(temp_dir, data_dir)
         shutil.rmtree(temp_dir)
     return target_file
-
 
 def _tree(path, pattern=None, dictionary=False):
     """ Return a directory tree under the form of a dictionaries and list
