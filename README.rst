@@ -19,8 +19,25 @@ Features:
 
 * scikit-learn API and conventions
 * 17 popular datasets
-* 6 word embeddings
+* 6 word embeddings (word2vec, GloVe, HDC/PDC and others)
 * methods to solve analogy, similarity and categorization tasks
+
+Included datasets:
+
+* WordRep
+* Google Analogy
+* MSR Analogy
+* SemEval2012
+* AP 
+* BLESS
+* Battig
+* ESSLI (2b, 2a, 1c)
+* WS353
+* MTurk
+* RG65
+* RW
+* SimLex999
+* MEN
 
 
 Dependencies
