@@ -8,3 +8,4 @@ seaborn>=0.6.0
 polyglot>=1.0.0
 futures
 tqdm
+docopt
