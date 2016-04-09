@@ -1,7 +1,7 @@
 Word Embeddings Benchmarks
 =====
 
-.. image:: https://travis-ci.com/kudkudak/word-embeddings-benchmarks.svg?token=tTz7fwsU6YC2L4acExst&branch=dev
+.. image:: https://travis-ci.org/kudkudak/word-embeddings-benchmarks.svg
     :target: https://travis-ci.org/kudkudak/word-embeddings-benchmarks
 
 Word Embedding Benchmark (web) package is focused on providing methods for easy evaluating and reporting
@@ -19,8 +19,25 @@ Features:
 
 * scikit-learn API and conventions
 * 17 popular datasets
-* 6 word embeddings
+* 6 word embeddings (word2vec, GloVe, HDC/PDC and others)
 * methods to solve analogy, similarity and categorization tasks
+
+Included datasets:
+
+* WordRep
+* Google Analogy
+* MSR Analogy
+* SemEval2012
+* AP 
+* BLESS
+* Battig
+* ESSLI (2b, 2a, 1c)
+* WS353
+* MTurk
+* RG65
+* RW
+* SimLex999
+* MEN
 
 Note: embeddings are not hosted currently on a proper server, if the download is too slow consider downloading embeddings manually from original sources referred in docstrings.
 
