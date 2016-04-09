@@ -19,7 +19,7 @@ Features:
 
 * scikit-learn API and conventions
 * 17 popular datasets
-* 6 word embeddings (word2vec, GloVe, HDC/PDC and others)
+* 8 word embeddings (word2vec, HPCA, morphoRNNLM, GloVe, HDC/PDC and others)
 * methods to solve analogy, similarity and categorization tasks
 
 Included datasets:

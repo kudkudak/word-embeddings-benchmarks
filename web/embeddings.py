@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
  Fetchers for publicly available pretrained embeddings
 """
@@ -46,6 +47,7 @@ def load_embedding(fname, format="word2vec_bin", normalize=True,
     if lower or clean_words:
         w.standardize_words(lower=lower, clean_words=clean_words, inplace=True)
     return w
+
 
 
 def fetch_GloVe(dim=300, corpus="wiki-6B", normalize=True, lower=False, clean_words=True):
@@ -138,6 +140,97 @@ def fetch_GloVe(dim=300, corpus="wiki-6B", normalize=True, lower=False, clean_wo
                            normalize=normalize,
                            lower=lower, clean_words=clean_words,\
                            load_kwargs={"vocab_size": vocab_size[corpus], "dim": dim})
+
+
+
+def fetch_HPCA(which, normalize=True, lower=False, clean_words=False):
+    """
+    Fetches Hellinger PCA based embeddings
+
+    Parameters
+    ----------
+    which: str, default: "autoencoder_phrase_hpca"
+      Can choose between "hpca" and "autoencoder_phrase_hpca" (from "The Sum of Its Parts")
+
+    normalize: bool, default: True
+      If true will normalize all vector to unit length
+
+    clean_words: bool, default: True
+      If true will only keep alphanumeric characters and "_", "-"
+      Warning: shouldn't be applied to embeddings with non-ascii characters
+
+    load_kwargs:
+      Additional parameters passed to load function. Mostly useful for 'glove' format where you
+      should pass vocab_size and dim.
+
+    Returns
+    -------
+    w: Embedding
+      Instance of Embedding class
+
+    References
+    ----------
+    Published at http://lebret.ch/words/
+    Reference paper: Lebret, Collobert et al., “The Sum of Its Parts”: Joint Learning of Word and Phrase Representations with Autoencoders", 2015
+    """
+    download_file = {
+            "autoencoder_phrase_hpca": "https://www.dropbox.com/s/6dyf48crdmjbw1a/AHPCA.bin.gz?dl=1",
+            "hpca": "https://www.dropbox.com/s/5y5l6vyn8yn11dv/HPCA.bin.gz?dl=1"
+    }
+
+    path = _fetch_file(url=download_file[which],
+                        data_dir="embeddings",
+                           uncompress=False,
+                           verbose=1)
+
+    return load_embedding(path, format="word2vec_bin", normalize=normalize, lower=lower, clean_words=clean_words)
+
+
+
+def fetch_morphoRNNLM(which, normalize=True, lower=False, clean_words=False):
+    """
+    Fetches recursive morphological neural network embeddings
+
+    Parameters
+    ----------
+    which: str, default: "CW"
+      Can choose between CW and HSMN
+
+    normalize: bool, default: True
+      If true will normalize all vector to unit length
+
+    clean_words: bool, default: True
+      If true will only keep alphanumeric characters and "_", "-"
+      Warning: shouldn't be applied to embeddings with non-ascii characters
+
+    load_kwargs:
+      Additional parameters passed to load function. Mostly useful for 'glove' format where you
+      should pass vocab_size and dim.
+
+    Returns
+    -------
+    w: Embedding
+      Instance of Embedding class
+
+    References
+    ----------
+    Published at http://stanford.edu/~lmthang/morphoNLM/
+    Reference paper: Luong, Socher et al., "Better Word Representations with Recursive Neural Networks for Morphology", 2013
+    """
+    download_file = {
+            "CW": "https://www.dropbox.com/s/7fdj2666iqv4xbu/cwCsmRNN.bin.gz?dl=1",
+            "HSMN": "https://www.dropbox.com/s/okw1i6kc6e2jd1q/hsmnCsmRNN.bin.gz?dl=1"
+    }
+
+    path = _fetch_file(url=download_file[which],
+                        data_dir="embeddings",
+                           uncompress=False,
+                           verbose=1)
+
+    return load_embedding(path, format="word2vec_bin", normalize=normalize, lower=lower, clean_words=clean_words)
+
+
+
 
 
 def fetch_NMT(which="DE", normalize=True, lower=False, clean_words=False):
