@@ -22,6 +22,7 @@ Features:
 * 6 word embeddings
 * methods to solve analogy, similarity and categorization tasks
 
+Note: embeddings are not hosted currently on a proper server, if the download is too slow consider downloading embeddings manually from original sources referred in docstrings.
 
 Dependencies
 ======

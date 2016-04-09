@@ -131,7 +131,7 @@ def fetch_GloVe(dim=300, corpus="wiki-6B", normalize=True, lower=False, clean_wo
     _ = _fetch_file(url=download_file[corpus],
                            data_dir="embeddings",
                            uncompress=True,
-                           verbose=0)
+                           verbose=1)
 
     return load_embedding(path.join(_get_dataset_dir("embeddings"), embedding_file[corpus][dim]),
                            format="glove",
@@ -174,7 +174,7 @@ def fetch_NMT(which="DE", normalize=True, lower=False, clean_words=False):
     dirname = _fetch_file(url="https://www.cl.cam.ac.uk/~fh295/TEmbz.tar.gz",
                        data_dir="embeddings",
                        uncompress=True,
-                       verbose=0)
+                       verbose=1)
 
     assert which in ["DE", "FR"], "Unrecognized which parameter"
 
@@ -189,7 +189,7 @@ def fetch_NMT(which="DE", normalize=True, lower=False, clean_words=False):
 
 def fetch_PDC(dim=300, normalize=True, lower=False, clean_words=True):
     """
-    Fetches HDC embeddings trained on wiki by Fei Sun
+    Fetches PDC embeddings trained on wiki by Fei Sun
 
     Parameters
     ----------
@@ -233,10 +233,9 @@ def fetch_PDC(dim=300, normalize=True, lower=False, clean_words=True):
                         data_dir="embeddings",
                            uncompress=False,
                            move="pdc/pdc{}.txt.bz2".format(dim),
-                           verbose=0)
+                           verbose=1)
 
     return load_embedding(path, format="word2vec", normalize=normalize, lower=lower, clean_words=clean_words)
-
 
 
 def fetch_HDC(dim=300, normalize=True, lower=False, clean_words=True):
@@ -285,7 +284,7 @@ def fetch_HDC(dim=300, normalize=True, lower=False, clean_words=True):
                         data_dir="embeddings",
                            uncompress=False,
                            move="hdc/hdc{}.txt.bz2".format(dim),
-                           verbose=0)
+                           verbose=1)
 
     return load_embedding(path, format="word2vec", normalize=normalize, lower=lower, clean_words=clean_words)
 
@@ -320,7 +319,7 @@ def fetch_SG_GoogleNews(normalize=True, lower=False, clean_words=True):
     """
     path = _fetch_file(url="https://www.dropbox.com/s/bnm0trligffakd9/GoogleNews-vectors-negative300.bin.gz?dl=1",
                            data_dir="embeddings",
-                           verbose=0)
+                           verbose=1)
     return load_embedding(path, format="word2vec_bin", normalize=normalize, lower=lower, clean_words=clean_words)
 
 

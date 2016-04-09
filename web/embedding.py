@@ -28,7 +28,7 @@ class Embedding(object):
     def __init__(self, vocabulary, vectors):
         self.vocabulary = vocabulary
         self.vectors = np.asarray(vectors)
-        if len(self.vocabulary) > self.vectors.shape[0]:
+        if len(self.vocabulary) != self.vectors.shape[0]:
             raise ValueError("Vocabulary has {} items but we have {} "
                              "vectors."
                              .format(len(vocabulary), self.vectors.shape[0]))
@@ -77,7 +77,7 @@ class Embedding(object):
         return self.transform_words(partial(standardize_string, lower=lower, clean_words=clean_words),
                                     inplace=inplace)
 
-    def transform_words(self, f, inplace=False, lower=False):
+    def transform_words(self, f, inplace=False):
         """ Tranform words in vocabulary """
         id_map = {}
         id_map_to_new = {}
@@ -90,6 +90,7 @@ class Embedding(object):
                     id_map_to_new[fw] = len(id_map) - 1
                     self.vectors[len(id_map) - 1] = self.vectors[id]
                 elif len(fw) and (fw in id_map) and (fw == w):
+                    # Overwrites with last occurence
                     self.vectors[id_map_to_new[fw]] = self.vectors[id]
 
 
@@ -205,6 +206,7 @@ class Embedding(object):
             words = []
             header = fin.readline()
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
+            logger.info("Loading #{} words with {} dim".format(vocab_size, layer1_size))
             vectors = np.zeros((vocab_size, layer1_size), dtype=np.float32)
             binary_len = np.dtype("float32").itemsize * layer1_size
             for line_no in range(vocab_size):
@@ -219,6 +221,11 @@ class Embedding(object):
 
                 words.append(b''.join(word).decode("latin-1"))
                 vectors[line_no, :] = np.fromstring(fin.read(binary_len), dtype=np.float32)
+
+            if len(words) < vocab_size:
+                logger.warning("Omitted {} words".format(vocab_size - len(words)))
+            elif len(words) > vocab_size:
+                raise RuntimeError("Read too many words, incorrect file")
 
             return words, vectors
 
@@ -256,6 +263,12 @@ class Embedding(object):
                 words.append(word)
             if ignored:
                 vectors = vectors[0:-ignored]
+
+            if len(words) < vocab_size:
+                logger.warning("Omitted {} words".format(vocab_size - len(words)))
+            elif len(words) > vocab_size:
+                raise RuntimeError("Read too many words, incorrect file")
+
             return words, vectors
 
 
@@ -311,7 +324,7 @@ class Embedding(object):
             # store in sorted order: most frequent words at the top
             for word, vector in zip(w.vocabulary.words, w.vectors):
                 if binary:
-                    fout.write(to_utf8(word) + b" " + vector.tostring())
+                    fout.write(to_utf8(word) + b" " + vector.astype("float32").tostring())
                 else:
                     fout.write(to_utf8("%s %s\n" % (word, ' '.join("%.15f" % val for val in vector))))
 
@@ -338,7 +351,12 @@ class Embedding(object):
         if not vocabulary:
             vocabulary = OrderedVocabulary(words=words)
 
-        return Embedding(vocabulary=vocabulary, vectors=vectors)
+        if len(words) != len(set(words)):
+            raise RuntimeError("Vocabulary has duplicates")
+
+        e = Embedding(vocabulary=vocabulary, vectors=vectors)
+
+        return e
 
     @staticmethod
     def load(fname):

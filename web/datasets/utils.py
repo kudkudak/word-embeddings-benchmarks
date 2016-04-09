@@ -20,6 +20,7 @@ import warnings
 import zipfile
 import glob
 import pandas as pd
+from tqdm import tqdm
 from sklearn.datasets.base import Bunch
 from .._utils.compat import _basestring, cPickle, _urllib, md5_hash
 
@@ -186,19 +187,27 @@ def _chunk_read_(response, local_file, chunk_size=8192, report_hook=None,
         total_size = None
     bytes_so_far = initial_size
 
-    t0 = time.time()
+    # t0 = time.time()
+    if report_hook:
+        pbar = tqdm(total=total_size, unit="b", unit_scale=True)
+
     while True:
         chunk = response.read(chunk_size)
         bytes_so_far += len(chunk)
 
         if not chunk:
             if report_hook:
-                sys.stderr.write('\n')
+                # sys.stderr.write('\n')
+                pbar.close()
             break
 
         local_file.write(chunk)
         if report_hook:
-            _chunk_report_(bytes_so_far, total_size, initial_size, t0)
+            pbar.update(len(chunk)) # This is better because works in ipython
+            # _chunk_report_(bytes_so_far, total_size, initial_size, t0)
+
+    if report_hook:
+        pbar.close()
 
     return
 
@@ -234,14 +243,15 @@ def _get_dataset_dir(sub_dir=None, data_dir=None, default_paths=None,
     the following priority :
     1. defaults system paths
     2. the keyword argument data_dir
-    3. the global environment variable ALPY_SHARED_DATA
-    4. the user environment variable ALPY_DATA
-    5. alpy_data in the user home folder
+    3. the global environment variable WEB_SHARED_DATA
+    4. the user environment variable WEB_DATA
+    5. web_data in the user home folder
     """
     # We build an array of successive paths by priority
     # The boolean indicates if it is a pre_dir: in that case, we won't add the
     # dataset name to the path.
     paths = []
+
 
     # Search given environment variables
     if default_paths is not None:

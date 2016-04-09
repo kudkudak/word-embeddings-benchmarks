@@ -5,11 +5,14 @@
  Usage: ./process_wiki.py <path to wiki dump>
 
  Adapted from http://textminingonline.com/training-word2vec-model-on-english-wikipedia-by-gensim
+
+ TODO: add shuffle?
 """
 
 import logging
 import os.path
 import sys
+import tqdm
  
 from gensim.corpora import WikiCorpus
  
@@ -40,4 +43,3 @@ if __name__ == '__main__':
     output.close()
     logger.info("Finished Saved " + str(i) + " articles")
 
-    # TODO: add shuffle?

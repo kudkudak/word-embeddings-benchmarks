@@ -28,7 +28,7 @@ _delchars = [x for x in _delchars if not x.isalnum()]
 _delchars.remove('\t')
 _delchars.remove(' ')
 _delchars.remove('-')
-_delchars.remove('_')  # for instance phrases joining in word2vec
+_delchars.remove('_')  # for instance phrases are joined in word2vec used this char
 _delchars = ''.join(_delchars)
 _delchars_table = dict((ord(char), None) for char in _delchars)
 
@@ -38,13 +38,15 @@ def standardize_string(s, clean_words=True, lower=True, language="english"):
     Ensures common convention across code. Converts to utf-8 and removes non-alphanumeric characters
 
     Parameters
-    -----------
+    ----------
     language: only "english" is now supported. If "english" will remove non-alphanumeric characters
+
     lower: if True will lower strńing.
-    only_alphanumeric: if True will remove non alphanumeric characters (for instance '$', '#' or 'ł')
+
+    clean_words: if True will remove non alphanumeric characters (for instance '$', '#' or 'ł')
 
     Returns
-    ----------
+    -------
     string: processed string
     """
 
@@ -73,7 +75,11 @@ def _open(file_, mode='r'):
     if isinstance(file_, string_types):
         _, ext = path.splitext(file_)
         if ext in {'.gz'}:
-            return gzip.GzipFile(file_, mode=mode)
+            if mode == "r" or mode == "rb":
+                # gzip is extremely slow
+                return io.BufferedReader(gzip.GzipFile(file_, mode=mode))
+            else:
+                return gzip.GzipFile(file_, mode=mode)
         if ext in {'.bz2'}:
             return bz2.BZ2File(file_, mode=mode)
         else:

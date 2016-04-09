@@ -11,7 +11,7 @@ import numpy as np
 from web.datasets.utils import _fetch_file
 from web.embedding import Embedding
 from web.utils import standardize_string
-
+from web.vocabulary import Vocabulary
 
 def test_standardize():
     url = "https://www.dropbox.com/s/rm756kjvckxa5ol/top100-sgns-googlenews-300.bin?dl=1"
@@ -39,6 +39,15 @@ def test_standardize_preserve_identity():
     assert w4['spider'][0] == 1
     w3.standardize_words(inplace=True, lower=True)
     assert w3['spider'][0] == 1
+
+def test_save_2():
+    dirpath = tempfile.mkdtemp()
+    w = ["a", "b", "c"]
+    vectors = np.array([[1.,2.] ,[2.,3.], [3.,4.]])
+    e = Embedding(Vocabulary(w), vectors)
+    Embedding.to_word2vec(e, path.join(dirpath, "test.bin"), binary=True)
+    e2 = Embedding.from_word2vec(path.join(dirpath, "test.bin"), binary=True)
+    assert np.array_equal(e2.vectors, vectors)
 
 def test_save():
     url = "https://www.dropbox.com/s/5occ4p7k28gvxfj/ganalogy-sg-wiki-en-400.bin?dl=1"
