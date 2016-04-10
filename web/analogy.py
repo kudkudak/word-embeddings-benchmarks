@@ -82,8 +82,18 @@ class SimpleAnalogySolver(sklearn.base.BaseEstimator):
         """
         w = self.w.most_frequent(self.k) if self.k else self.w
         words = self.w.vocabulary.words
+        word_id = self.w.vocabulary.word_id
         mean_vector = np.mean(w.vectors, axis=0)
         output = []
+
+        missing_words = 0
+        for query in X:
+            for query_word in query:
+                if query_word not in word_id:
+                    missing_words += 1
+        if missing_words > 0:
+            logger.warning("Missing {} words. Will replace them with mean vector".format(missing_words))
+
         # Batch due to memory constaints (in dot operation)
         for id_batch, batch in enumerate(batched(range(len(X)), self.batch_size)):
             ids = list(batch)
