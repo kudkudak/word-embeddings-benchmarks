@@ -17,7 +17,6 @@ from six import iteritems
 from six import text_type as unicode
 from six import string_types
 from .utils import _open
-from polyglot.base import TextFile
 
 
 def count(lines):
@@ -185,41 +184,6 @@ class CountedVocabulary(OrderedVocabulary):
         words = [w for w, c in sorted_counts]
         super(CountedVocabulary, self).__init__(words=words)
         self.word_count = dict(sorted_counts)
-
-    @staticmethod
-    def from_textfiles(files, workers=1, job_size=1000):
-        c = Counter()
-        if workers == 1:
-            for lines in files.iter_chunks(job_size):
-                c.update(count(lines))
-        else:
-            with ProcessPoolExecutor(max_workers=workers) as executor:
-                for counter_ in executor.map(CountedVocabulary.from_textfile, files.names):
-                    c.update(Counter(counter_.word_count))
-        return CountedVocabulary(word_count=c)
-
-    @classmethod
-    def from_textfile(cls, textfile, workers=1, job_size=1000):
-        """ Count the set of words appeared in a text file.
-
-        Args:
-          textfile (string): The name of the text file or `TextFile` object.
-          min_count (integer): Minimum number of times a word/token appeared in the document
-                     to be considered part of the vocabulary.
-          workers (integer): Number of parallel workers to read the file simulatenously.
-          job_size (integer): Size of the batch send to each worker.
-          most_frequent (integer): if no min_count is specified, consider the most frequent k words for the vocabulary.
-
-        Returns:
-          A vocabulary of the most frequent words appeared in the document.
-        """
-
-        c = Counter()
-        if isinstance(textfile, string_types):
-            textfile = TextFile(textfile)
-        for result in textfile.apply(count, workers, job_size):
-            c.update(result)
-        return CountedVocabulary(word_count=c)
 
     def most_frequent(self, k):
         """ Returns a vocabulary with the most frequent `k` words.

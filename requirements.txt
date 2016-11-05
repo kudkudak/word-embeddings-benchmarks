@@ -5,7 +5,6 @@ pytest>=2.8.3
 scipy>=0.9
 scikit-learn>=0.16.1
 seaborn>=0.6.0
-polyglot>=1.0.0
 futures
 tqdm
 docopt
