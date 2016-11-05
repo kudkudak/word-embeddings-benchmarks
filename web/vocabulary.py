@@ -72,6 +72,17 @@ class Vocabulary(object):
             key = unicode(key, encoding="utf-8")
         return self.word_id[key]
 
+    def add(self, word):
+        if isinstance(word, string_types) and not isinstance(word, unicode):
+            word = unicode(word, encoding="utf-8")
+
+        if word in self.word_id:
+            raise RuntimeError("Already existing word")
+
+        id = len(self.word_id)
+        self.word_id[word] = id
+        self.id_word[id] = word
+
     def __contains__(self, key):
         return key in self.word_id
 

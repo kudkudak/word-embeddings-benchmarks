@@ -39,6 +39,17 @@ class Embedding(object):
     def __getitem__(self, k):
         return self.vectors[self.vocabulary[k]]
 
+    def __setitem__(self, k, v):
+        if not v.shape[0] == self.vectors.shape[1]:
+            raise RuntimeError("Please pass vector of len {}".format(self.vectors.shape[1]))
+
+        if k not in self.vocabulary:
+            self.vocabulary.add(k)
+            self.vectors = np.vstack([self.vectors, v.reshape(1,-11)])
+        else:
+            self.vectors[self.vocabulary[k]] = v
+
+
     def __contains__(self, k):
         return k in self.vocabulary
 
@@ -302,7 +313,8 @@ class Embedding(object):
 
     @staticmethod
     def from_dict(d):
-        # Python3 dict.values() returns a view
+        for k in d: # Standarize
+            d[k] = np.array(d[k]).flatten()
         return Embedding(vectors=list(d.values()), vocabulary=Vocabulary(d.keys()))
 
     @staticmethod
