@@ -15,6 +15,8 @@ To evaluate your embedding (converted to word2vec or python dict pickle)
 on all fast-running benchmarks execute `./scripts/eval_on_all.py <path-to-file>`.
 See `here <https://github.com/kudkudak/word-embeddings-benchmarks/wiki>`_ results for embeddings available in the package.
 
+Please also refer to our recent publication on evaluation methods https://arxiv.org/abs/1702.02170 and please cite it if you use this package.
+
 Features:
 
 * scikit-learn API and conventions
