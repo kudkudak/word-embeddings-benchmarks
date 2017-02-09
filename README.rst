@@ -1,9 +1,6 @@
 Word Embeddings Benchmarks
 =====
 
-.. image:: https://travis-ci.org/kudkudak/word-embeddings-benchmarks.svg
-    :target: https://travis-ci.org/kudkudak/word-embeddings-benchmarks
-
 Word Embedding Benchmark (web) package is focused on providing methods for easy evaluating and reporting
 results on common benchmarks (analogy, similarity and categorization).
 
