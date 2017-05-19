@@ -54,6 +54,10 @@ for dim in [50, 100, 300]:
 
 jobs.append(["fetch_SG_GoogleNews", {}])
 
+## LexVec
+
+jobs.append(["fetch_LexVec", {}])
+
 
 def run_job(j):
     fn, kwargs = j

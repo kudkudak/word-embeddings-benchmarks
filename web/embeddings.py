@@ -415,6 +415,47 @@ def fetch_SG_GoogleNews(normalize=True, lower=False, clean_words=True):
                            verbose=1)
     return load_embedding(path, format="word2vec_bin", normalize=normalize, lower=lower, clean_words=clean_words)
 
+def fetch_LexVec(which="commoncrawl-W+C", normalize=True, lower=False, clean_words=False):
+    """
+    Fetches LexVec embeddings
+
+    Parameters
+    ----------
+    which: str, default: "commoncrawl-W+C"
+      Can choose between "commoncrawl-W", "commoncrawl-W+C", "wikipedia+newscrawl-W", "wikipedia+newscrawl-W+C"
+
+    normalize: bool, default: True
+      If true will normalize all vector to unit length
+
+    lower: bool, default: False
+      If true, will convert string to lowercase
+
+    clean_words: bool, default: False
+      If true will only keep alphanumeric characters and "_", "-"
+      Warning: shouldn't be applied to embeddings with non-ascii characters
+
+    Returns
+    -------
+    w: Embedding
+      Instance of Embedding class
+
+    References
+    ----------
+    Published at https://github.com/alexandres/lexvec
+    Reference paper: Salle, Alexandre, Marco Idiart, and Aline Villavicencio. Matrix Factorization using Window Sampling and Negative Sampling for Improved Word Representations. The 54th Annual Meeting of the Association for Computational Linguistics. 2016.
+    """
+    download_file = {
+            "commoncrawl-W": "http://nlpserver2.inf.ufrgs.br/alexandres/vectors/lexvec.commoncrawl.300d.W.pos.vectors.gz",
+            "commoncrawl-W+C": "http://nlpserver2.inf.ufrgs.br/alexandres/vectors/lexvec.commoncrawl.300d.W+C.pos.vectors.gz",
+            "wikipedia+newscrawl-W": "http://nlpserver2.inf.ufrgs.br/alexandres/vectors/lexvec.enwiki%2bnewscrawl.300d.W.pos.vectors.gz",
+            "wikipedia+newscrawl-W+C": "http://nlpserver2.inf.ufrgs.br/alexandres/vectors/lexvec.enwiki%2bnewscrawl.300d.W+C.pos.vectors.gz",
+    }
+
+    path = _fetch_file(url=download_file[which],
+                        data_dir="embeddings",
+                        verbose=1)
+
+    return load_embedding(path, format="word2vec", normalize=normalize, lower=lower, clean_words=clean_words)
 
 # TODO: uncomment after training is finished
 # def fetch_SG_wiki(normalize=True, lower=False, clean_words=True):
