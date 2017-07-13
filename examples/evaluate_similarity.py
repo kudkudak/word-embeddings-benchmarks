@@ -7,7 +7,7 @@ import logging
 from six import iteritems
 from web.datasets.similarity import fetch_MEN, fetch_WS353, fetch_SimLex999
 from web.embeddings import fetch_GloVe
-from web.similarity import evaluate_similarity
+from web.evaluate import evaluate_similarity
 
 # Configure logging
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.DEBUG, datefmt='%I:%M:%S')
