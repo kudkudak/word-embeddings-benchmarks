@@ -704,8 +704,8 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,md5sum=None,
     # detecting already downloaded files)
     # Ex. glove.4B.zip -> glove.4B/glove.4B.zip
     if uncompress and not move:
-        dirname, _ = os.path.splitext(file_)
-        move = os.path.join(dirname, os.path.basename(file_))
+        dirname, _ = os.path.splitext(file_name)
+        move = os.path.join(dirname, os.path.basename(file_name))
 
     if (abort is None
         and not os.path.exists(target_file)
