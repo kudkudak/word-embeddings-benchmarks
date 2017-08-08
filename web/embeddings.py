@@ -457,6 +457,35 @@ def fetch_LexVec(which="commoncrawl-W+C", normalize=True, lower=False, clean_wor
 
     return load_embedding(path, format="word2vec", normalize=normalize, lower=lower, clean_words=clean_words)
 
+
+def fetch_conceptnet_numberbatch(clean_words=False):
+    """
+    Fetches ConceptNetNumberbatch embeddings. Embeddings are normalized to unit length,
+    and the vocabulary terms are lowercase.
+
+    Parameters
+    ----------
+    clean_words: bool, default: False
+      If true will only keep alphanumeric characters and "_", "-"
+      Warning: shouldn't be applied to embeddings with non-ascii characters
+
+    Returns
+    -------
+    w: Embedding
+      Instance of Embedding class
+
+    References
+    ----------
+    Published at https://github.com/commonsense/conceptnet-numberbatch
+    Reference paper: Robert Speer, Joshua Chin, and Catherine Havasi (2017). "ConceptNet 5.5: An Open Multilingual Graph of General Knowledge." In proceedings of AAAI 2017.
+    """
+    path = _fetch_file(url='https://conceptnet.s3.amazonaws.com/downloads/2017/numberbatch/numberbatch-en-17.06.txt.gz',
+                       data_dir='embeddings',
+                       uncompress=False,
+                       verbose=1)
+    return load_embedding(path, format='word2vec', normalize=False, clean_words=clean_words)
+
+
 # TODO: uncomment after training is finished
 # def fetch_SG_wiki(normalize=True, lower=False, clean_words=True):
 #     """
