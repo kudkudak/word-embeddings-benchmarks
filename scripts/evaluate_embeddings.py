@@ -58,6 +58,8 @@ jobs.append(["fetch_SG_GoogleNews", {}])
 
 jobs.append(["fetch_LexVec", {}])
 
+## ConceptNet Numberbatch
+jobs.append(["fetch_conceptnet_numberbatch", {}])
 
 def run_job(j):
     fn, kwargs = j
