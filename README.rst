@@ -79,4 +79,4 @@ License
 =======
 Code is licensed under MIT, however available embeddings distributed within package might be under different license. If you are unsure please reach to authors (references are included in docstrings)
 
-If you use this package in your research, please cite https://arxiv.org/abs/1702.02170.
+
