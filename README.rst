@@ -79,5 +79,5 @@ License
 =======
 Code is licensed under MIT, however available embeddings distributed within package might be under different license. If you are unsure please reach to authors (references are included in docstrings)
 
-If you use package, please consider citing https://arxiv.org/abs/1702.02170.
+If you use package in your work, you are welcome to cite https://arxiv.org/abs/1702.02170.
 
