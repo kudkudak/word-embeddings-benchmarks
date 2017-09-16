@@ -313,7 +313,7 @@ class Embedding(object):
 
     @staticmethod
     def from_dict(d):
-        for k in d: # Standarize
+        for k in d: # Standardize
             d[k] = np.array(d[k]).flatten()
         return Embedding(vectors=list(d.values()), vocabulary=Vocabulary(d.keys()))
 

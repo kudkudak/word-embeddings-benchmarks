@@ -20,3 +20,15 @@ def test_similarity():
     assert result_2 > 0
     assert result_1 == result_2, "evaluate_similarity should return same result for dict and Embedding instance"
 
+def test_similarity_norm():
+    url = "https://www.dropbox.com/s/rm756kjvckxa5ol/top100-sgns-googlenews-300.bin?dl=1"
+    file_name = _fetch_file(url, "test")
+    w = Embedding.from_word2vec(file_name, binary=True)
+    w_norm = w.normalize_words()
+    data = fetch_SimLex999()
+
+    result_1 = evaluate_similarity(w, data.X, data.y)
+    result_2 = evaluate_similarity(w_norm, data.X, data.y)
+
+    assert result_2 > 0
+    assert result_1 == result_2, "evaluate_similarity should return same result for normalized and unnormalized words"
