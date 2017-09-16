@@ -45,7 +45,7 @@ class Embedding(object):
 
         if k not in self.vocabulary:
             self.vocabulary.add(k)
-            self.vectors = np.vstack([self.vectors, v.reshape(1,-11)])
+            self.vectors = np.vstack([self.vectors, v.reshape(1, -1)])
         else:
             self.vectors[self.vocabulary[k]] = v
 
