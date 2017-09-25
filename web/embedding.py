@@ -22,6 +22,7 @@ from sklearn.metrics import pairwise_distances
 
 logger = logging.getLogger(__name__)
 
+
 class Embedding(object):
     """ Mapping a vocabulary to a d-dimensional points."""
 
@@ -48,7 +49,6 @@ class Embedding(object):
             self.vectors = np.vstack([self.vectors, v.reshape(1, -1)])
         else:
             self.vectors[self.vocabulary[k]] = v
-
 
     def __contains__(self, k):
         return k in self.vocabulary
@@ -104,16 +104,43 @@ class Embedding(object):
                     # Overwrites with last occurence
                     self.vectors[id_map_to_new[fw]] = self.vectors[id]
 
-
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
             self.vectors = self.vectors[0:len(id_map)]
             self.vocabulary = self.vocabulary.__class__(words)
             logger.info("Tranformed {} into {} words".format(word_count, len(words)))
             return self
         else:
+
+            words_len = {}
+            counts = {}
+            _, counter_of_words = self.vocabulary.getstate()
+
             for id, w in enumerate(self.vocabulary.words):
-                if len(f(w)) and (f(w) not in id_map or f(w) == w):
-                    id_map[f(w)] = id
+                # if len(f(w)) and (f(w) not in id_map or f(w) == w):
+                #     id_map[f(w)] = id
+                fw = f(w)
+                if fw not in id_map:
+                    id_map[fw] = id
+
+                    counts[fw] = counter_of_words[id]
+                    words_len[fw] = len(w)
+                # in id_map
+                else:
+                    if fw in words_len:
+                        if fw in counts:
+                            if counter_of_words[id] > counts[fw] and len(w) < words_len[fw]:
+                                id_map[fw] = id
+
+                                counts[fw] = counter_of_words[id]
+                                words_len[fw] = len(w)
+                        # not in word counts
+                        else:
+                            if counter_of_words[id] > counts[fw]:
+                                id_map[fw] = id
+
+                                counts[fw] = counter_of_words[id]
+                                words_len[fw] = len(w)
+
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
             vectors = self.vectors[[id_map[w] for w in words]]
             logger.info("Tranformed {} into {} words".format(word_count, len(words)))
@@ -147,7 +174,6 @@ class Embedding(object):
             self.vectors = vectors.T
             return self
         return Embedding(vectors=vectors.T, vocabulary=self.vocabulary)
-
 
     def nearest_neighbors(self, word, k=1, exclude=[], metric="cosine"):
         """
@@ -282,7 +308,6 @@ class Embedding(object):
 
             return words, vectors
 
-
     @staticmethod
     def from_glove(fname, vocab_size, dim):
         with _open(fname, 'r') as fin:
@@ -301,7 +326,8 @@ class Embedding(object):
                     continue
 
                 try:
-                    word, vectors[line_no - ignored] = " ".join(parts[0:len(parts) - dim]), list(map(np.float32, parts[len(parts) - dim:]))
+                    word, vectors[line_no - ignored] = " ".join(parts[0:len(parts) - dim]), list(
+                        map(np.float32, parts[len(parts) - dim:]))
                     words.append(word)
                 except Exception as e:
                     ignored += 1
@@ -310,10 +336,9 @@ class Embedding(object):
 
             return Embedding(vocabulary=OrderedVocabulary(words), vectors=vectors[0:len(words)])
 
-
     @staticmethod
     def from_dict(d):
-        for k in d: # Standardize
+        for k in d:  # Standardize
             d[k] = np.array(d[k]).flatten()
         return Embedding(vectors=list(d.values()), vocabulary=Vocabulary(d.keys()))
 

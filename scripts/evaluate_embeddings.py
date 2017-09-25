@@ -61,6 +61,9 @@ jobs.append(["fetch_LexVec", {}])
 ## ConceptNet Numberbatch
 jobs.append(["fetch_conceptnet_numberbatch", {}])
 
+## FastText
+jobs.append(["fetch_FastText", {}])
+
 def run_job(j):
     fn, kwargs = j
     outf = path.join(opts.output_dir, fn + "_" + "_".join(str(k) + "=" + str(v) for k,v in iteritems(kwargs))) + ".csv"
