@@ -122,7 +122,7 @@ class Embedding(object):
             if isinstance(self.vocabulary, CountedVocabulary):
                 _, counter_of_words = self.vocabulary.getstate()
             elif isinstance(self.vocabulary, OrderedVocabulary):
-#todo ranges
+                # todo ranges
                 if sys.version_info[0] < 3:
                     counter_of_words = xrange(len(self.vocabulary.words) - 1, -1, -1)
                 else:
@@ -140,26 +140,21 @@ class Embedding(object):
 
                     counts[fw] = counter_of_words[id]
                     words_len[fw] = len(w)
-                    # in id_map
-                else:
+
                     # overwrite
-                    if fw in words_len:
-                        if fw in counts:
-                            # todo equal counts?
-                            if counter_of_words[id] > counts[fw] and len(w) <= words_len[fw]:
-                                id_map[fw] = id
+                elif len(fw) and fw in id_map:
+                    if counter_of_words[id] > counts[fw] and len(w) <= words_len[fw]:
+                        id_map[fw] = id
 
-                                counts[fw] = counter_of_words[id]
-                                words_len[fw] = len(w)
-                        # not in word counts
-                        else:
-                            if counter_of_words[id] > counts[fw]:
-                                id_map[fw] = id
+                        counts[fw] = counter_of_words[id]
+                        words_len[fw] = len(w)
+                    elif counter_of_words[id] == counts[fw] and len(w) < words_len[fw]:
+                        id_map[fw] = id
 
-                                counts[fw] = counter_of_words[id]
-                                words_len[fw] = len(w)
+                        counts[fw] = counter_of_words[id]
+                        words_len[fw] = len(w)
 
-                        logger.warning("Overwritting {}".format(fw))
+                logger.warning("Overwritting {}".format(fw))
 
             if isinstance(self.vocabulary, CountedVocabulary):
                 words_only = id_map.keys()

@@ -89,7 +89,7 @@ def test_noinplace_transform_word_prefer_shortestword_CountedVocabulary():
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
     cw = CountedVocabulary(
-        word_count=[(' cat ', 5), ('    pikatchu   ', 10), ('cat', 50), ('dog', 60), ('pikatchu', 10)])
+        word_count=[('dog', 60), ('cat', 50), ('    pikatchu   ', 10), ('pikatchu', 10), (' cat ', 5)])
 
     e = Embedding(vocabulary=cw, vectors=np.asanyarray([[0, 0, 1], [0, 1, 11], [0, 11, 12], [0, 12, 13], [0, 13, 14]]))
     pe = e.transform_words(lambda x: x.strip(), inplace=False)
@@ -102,7 +102,7 @@ def test_noinplace_transform_word_prefer_shortestword_CountedVocabulary():
     # 'cat'
     assert [0, 1, 11] in pe.vectors.tolist()
     # pikatchu
-    assert [0, 11, 12] in pe.vectors.tolist()
+    assert [0, 12, 13] in pe.vectors.tolist()
 
     assert 'cat' in pe.vocabulary.words
     assert 'dog' in pe.vocabulary.words
@@ -113,7 +113,7 @@ def test_noinplace_transform_word_prefer_shortestword_CountedVocabulary():
 
     # pikatchu
     assert pe.vocabulary.words[2] == 'pikatchu'
-    assert np.array_equal(pe.vectors[2], [0, 11, 12])
+    assert np.array_equal(pe.vectors[2], [0, 12, 13])
     assert d['pikatchu'] == 10
 
     # dog
@@ -265,7 +265,7 @@ def test_noinplace_transform_word_Vocabulary():
     assert type(pe.vocabulary) == Vocabulary
 
 
-def test_noinplace_transform_word_prefer_occurences_Vocabulary():
+def test_noinplace_transform_word_prefer_shortest_ord1_Vocabulary():
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
     cw = Vocabulary(words=['pikatchu ', 'dog', 'cat', 'pikatchu', '  cat '])
@@ -288,21 +288,21 @@ def test_noinplace_transform_word_prefer_occurences_Vocabulary():
     assert 'pikatchu' in pe.vocabulary.words
 
     # pikatchu
-    assert pe.vocabulary.words[0] == 'pikatchu'
-    assert np.array_equal(pe.vectors[0], [0, 0, 1])
+    assert pe.vocabulary.words[2] == 'pikatchu'
+    assert np.array_equal(pe.vectors[2], [0, 0, 1])
 
     # dog
-    assert pe.vocabulary.words[1] == 'dog'
-    assert np.array_equal(pe.vectors[1], [0, 1, 11])
+    assert pe.vocabulary.words[0] == 'dog'
+    assert np.array_equal(pe.vectors[0], [0, 1, 11])
 
     # cat
-    assert pe.vocabulary.words[2] == 'cat'
-    assert np.array_equal(pe.vectors[2], [0, 11, 12])
+    assert pe.vocabulary.words[1] == 'cat'
+    assert np.array_equal(pe.vectors[1], [0, 11, 12])
 
     assert type(pe.vocabulary) == Vocabulary
 
 
-def test_noinplace_transform_word_prefer_shortestword_Vocabulary():
+def test_noinplace_transform_word_prefer_shortestword2_Vocabulary():
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
     cw = Vocabulary(words=['dog', 'cat', '    pikatchu   ', 'pikatchu', ' cat '])
@@ -317,7 +317,7 @@ def test_noinplace_transform_word_prefer_shortestword_Vocabulary():
     # 'cat'
     assert [0, 1, 11] in pe.vectors.tolist()
     # pikatchu
-    assert [0, 11, 12] in pe.vectors.tolist()
+    assert [0, 12, 13] in pe.vectors.tolist()
 
     assert 'cat' in pe.vocabulary.words
     assert 'dog' in pe.vocabulary.words
@@ -325,7 +325,7 @@ def test_noinplace_transform_word_prefer_shortestword_Vocabulary():
 
     # pikatchu
     assert pe.vocabulary.words[2] == 'pikatchu'
-    assert np.array_equal(pe.vectors[2], [0, 11, 12])
+    assert np.array_equal(pe.vectors[2], [0, 12, 13])
 
     # dog
     assert pe.vocabulary.words[0] == 'dog'
