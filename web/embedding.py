@@ -94,81 +94,69 @@ class Embedding(object):
     def transform_words(self, f, inplace=False):
         """ Tranform words in vocabulary """
         id_map = OrderedDict()
-        id_map_to_new = {}
         word_count = len(self.vectors)
-        if inplace:
-            for id, w in enumerate(self.vocabulary.words):
-                fw = f(w)
-                if len(fw) and (fw not in id_map):
+        # store max word length before f(w)- in corpora
+        words_len = {}
+        # store max occurrence count of word
+        counts = {}
+
+        if isinstance(self.vocabulary, CountedVocabulary):
+            _, counter_of_words = self.vocabulary.getstate()
+        elif isinstance(self.vocabulary, OrderedVocabulary):
+            if sys.version_info[0] < 3:
+                counter_of_words = xrange(len(self.vocabulary.words) - 1, -1, -1)
+            else:
+                # range in python3 is lazy
+                counter_of_words = range(len(self.vocabulary.words) - 1, -1, -1)
+
+        elif isinstance(self.vocabulary, Vocabulary):
+            counter_of_words = SingleValDict(0xdeadbeef)
+
+        for id, w in enumerate(self.vocabulary.words):
+
+            fw = f(w)
+            if len(fw) and fw not in id_map:
+                id_map[fw] = id
+
+                counts[fw] = counter_of_words[id]
+                words_len[fw] = len(w)
+
+                # overwrite
+            elif len(fw) and fw in id_map:
+                if counter_of_words[id] > counts[fw] and len(w) <= words_len[fw]:
                     id_map[fw] = id
-                    id_map_to_new[fw] = len(id_map) - 1
-                    self.vectors[len(id_map) - 1] = self.vectors[id]
-                elif len(fw) and (fw in id_map) and (fw == w):
-                    # Overwrites with last occurence
-                    self.vectors[id_map_to_new[fw]] = self.vectors[id]
 
-            words = sorted(id_map.keys(), key=lambda x: id_map[x])
-            self.vectors = self.vectors[0:len(id_map)]
-            self.vocabulary = self.vocabulary.__class__(words)
-            logger.info("Tranformed {} into {} words".format(word_count, len(words)))
-            return self
-
-        else:
-            # store max word length before f(w)- in corpora
-            words_len = {}
-            # store max occurrence count of word
-            counts = {}
-
-            if isinstance(self.vocabulary, CountedVocabulary):
-                _, counter_of_words = self.vocabulary.getstate()
-            elif isinstance(self.vocabulary, OrderedVocabulary):
-                if sys.version_info[0] < 3:
-                    counter_of_words = xrange(len(self.vocabulary.words) - 1, -1, -1)
-                else:
-                    # range in python3 is lazy
-                    counter_of_words = range(len(self.vocabulary.words) - 1, -1, -1)
-
-            elif isinstance(self.vocabulary, Vocabulary):
-                counter_of_words = SingleValDict(0xdeadbeef)
-
-            for id, w in enumerate(self.vocabulary.words):
-
-                fw = f(w)
-                if len(fw) and fw not in id_map:
+                    counts[fw] = counter_of_words[id]
+                    words_len[fw] = len(w)
+                elif counter_of_words[id] == counts[fw] and len(w) < words_len[fw]:
                     id_map[fw] = id
 
                     counts[fw] = counter_of_words[id]
                     words_len[fw] = len(w)
 
-                    # overwrite
-                elif len(fw) and fw in id_map:
-                    if counter_of_words[id] > counts[fw] and len(w) <= words_len[fw]:
-                        id_map[fw] = id
+            logger.warning("Overwritting {}".format(fw))
 
-                        counts[fw] = counter_of_words[id]
-                        words_len[fw] = len(w)
-                    elif counter_of_words[id] == counts[fw] and len(w) < words_len[fw]:
-                        id_map[fw] = id
+        if isinstance(self.vocabulary, CountedVocabulary):
+            words_only = id_map.keys()
+            vectors = self.vectors[[id_map[w] for w in words_only]]
+            words = {w: counter_of_words[id_map[w]] for w in words_only}
 
-                        counts[fw] = counter_of_words[id]
-                        words_len[fw] = len(w)
+        elif isinstance(self.vocabulary, OrderedVocabulary):
+            words = sorted(id_map.keys(), key=lambda x: id_map[x])
+            vectors = self.vectors[[id_map[w] for w in words]]
 
-                logger.warning("Overwritting {}".format(fw))
+        elif isinstance(self.vocabulary, Vocabulary):
+            words = sorted(id_map.keys(), key=lambda x: id_map[x])
+            vectors = self.vectors[[id_map[w] for w in words]]
 
-            if isinstance(self.vocabulary, CountedVocabulary):
-                words_only = id_map.keys()
-                vectors = self.vectors[[id_map[w] for w in words_only]]
-                words = {w: counter_of_words[id_map[w]] for w in words_only}
+        logger.info("Tranformed {} into {} words".format(word_count, len(words)))
 
-            elif isinstance(self.vocabulary, OrderedVocabulary):
-                words = sorted(id_map.keys(), key=lambda x: id_map[x])
-                vectors = self.vectors[[id_map[w] for w in words]]
+        if inplace:
+            self.vectors = vectors
+            self.vocabulary = self.vocabulary.__class__(words)
 
-            elif isinstance(self.vocabulary, Vocabulary):
-                words = sorted(id_map.keys(), key=lambda x: id_map[x])
-                vectors = self.vectors[[id_map[w] for w in words]]
-
-            logger.info("Tranformed {} into {} words".format(word_count, len(words)))
+            return self
+        else:
             return Embedding(vectors=vectors, vocabulary=self.vocabulary.__class__(words))
 
     def most_frequent(self, k, inplace=False):
