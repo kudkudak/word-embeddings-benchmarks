@@ -122,7 +122,6 @@ class Embedding(object):
             if isinstance(self.vocabulary, CountedVocabulary):
                 _, counter_of_words = self.vocabulary.getstate()
             elif isinstance(self.vocabulary, OrderedVocabulary):
-                # todo ranges
                 if sys.version_info[0] < 3:
                     counter_of_words = xrange(len(self.vocabulary.words) - 1, -1, -1)
                 else:

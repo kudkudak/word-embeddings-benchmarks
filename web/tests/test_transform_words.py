@@ -336,3 +336,4 @@ def test_noinplace_transform_word_prefer_shortestword2_Vocabulary():
     assert np.array_equal(pe.vectors[1], [0, 1, 11])
 
     assert type(pe.vocabulary) == Vocabulary
+## inplace= True
