@@ -5,7 +5,10 @@ NOTE: This file was adapted from the polyglot package
 """
 
 import logging
+from collections import OrderedDict
+
 import numpy as np
+import sys
 
 from six import text_type
 from six import PY2
@@ -90,7 +93,7 @@ class Embedding(object):
 
     def transform_words(self, f, inplace=False):
         """ Tranform words in vocabulary """
-        id_map = {}
+        id_map = OrderedDict()
         id_map_to_new = {}
         word_count = len(self.vectors)
         if inplace:
@@ -109,26 +112,41 @@ class Embedding(object):
             self.vocabulary = self.vocabulary.__class__(words)
             logger.info("Tranformed {} into {} words".format(word_count, len(words)))
             return self
-        else:
 
+        else:
+            # store max word length before f(w)- in corpora
             words_len = {}
+            # store max occurrence count of word
             counts = {}
-            _, counter_of_words = self.vocabulary.getstate()
+
+            if isinstance(self.vocabulary, CountedVocabulary):
+                _, counter_of_words = self.vocabulary.getstate()
+            elif isinstance(self.vocabulary, OrderedVocabulary):
+#todo ranges
+                if sys.version_info[0] < 3:
+                    counter_of_words = xrange(len(self.vocabulary.words) - 1, -1, -1)
+                else:
+                    # range in python3 is lazy
+                    counter_of_words = range(len(self.vocabulary.words) - 1, -1, -1)
+
+            elif isinstance(self.vocabulary, Vocabulary):
+                counter_of_words = SingleValDict(0xdeadbeef)
 
             for id, w in enumerate(self.vocabulary.words):
-                # if len(f(w)) and (f(w) not in id_map or f(w) == w):
-                #     id_map[f(w)] = id
+
                 fw = f(w)
-                if fw not in id_map:
+                if len(fw) and fw not in id_map:
                     id_map[fw] = id
 
                     counts[fw] = counter_of_words[id]
                     words_len[fw] = len(w)
-                # in id_map
+                    # in id_map
                 else:
+                    # overwrite
                     if fw in words_len:
                         if fw in counts:
-                            if counter_of_words[id] > counts[fw] and len(w) < words_len[fw]:
+                            # todo equal counts?
+                            if counter_of_words[id] > counts[fw] and len(w) <= words_len[fw]:
                                 id_map[fw] = id
 
                                 counts[fw] = counter_of_words[id]
@@ -141,8 +159,21 @@ class Embedding(object):
                                 counts[fw] = counter_of_words[id]
                                 words_len[fw] = len(w)
 
-            words = sorted(id_map.keys(), key=lambda x: id_map[x])
-            vectors = self.vectors[[id_map[w] for w in words]]
+                        logger.warning("Overwritting {}".format(fw))
+
+            if isinstance(self.vocabulary, CountedVocabulary):
+                words_only = id_map.keys()
+                vectors = self.vectors[[id_map[w] for w in words_only]]
+                words = {w: counter_of_words[id_map[w]] for w in words_only}
+
+            elif isinstance(self.vocabulary, OrderedVocabulary):
+                words = sorted(id_map.keys(), key=lambda x: id_map[x])
+                vectors = self.vectors[[id_map[w] for w in words]]
+
+            elif isinstance(self.vocabulary, Vocabulary):
+                words = sorted(id_map.keys(), key=lambda x: id_map[x])
+                vectors = self.vectors[[id_map[w] for w in words]]
+
             logger.info("Tranformed {} into {} words".format(word_count, len(words)))
             return Embedding(vectors=vectors, vocabulary=self.vocabulary.__class__(words))
 
@@ -232,6 +263,7 @@ class Embedding(object):
         counts = {}
         with _open(fvocab) as fin:
             for line in fin:
+                # todo without strip
                 word, count = standardize_string(line).strip().split()
                 if word:
                     counts[word] = int(count)
@@ -421,3 +453,11 @@ class Embedding(object):
         state = (voc, vec)
         with open(fname, 'wb') as f:
             pickle.dump(state, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+class SingleValDict(dict):
+    def __init__(self, v):
+        self.val = v
+
+    def __getitem__(self, item):
+        return self.val
