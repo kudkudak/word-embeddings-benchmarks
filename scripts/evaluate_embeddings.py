@@ -30,48 +30,50 @@ jobs = []
 
 ## GloVe
 
-for dim in [50, 100, 200, 300]:
-    jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "wiki-6B"}])
+# for dim in [50, 100, 200, 300]:
+#     jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "wiki-6B"}])
 
-for dim in [25, 50, 100, 200]:
-    jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "twitter-27B"}])
+# for dim in [25, 50, 100, 200]:
+#     jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "twitter-27B"}])
 
-for corpus in ["common-crawl-42B", "common-crawl-840B"]:
-    jobs.append(["fetch_GloVe", {"dim": 300, "corpus": corpus}])
+# for corpus in ["common-crawl-42B", "common-crawl-840B"]:
+#     jobs.append(["fetch_GloVe", {"dim": 300, "corpus": corpus}])
 
 ## NMT
 
-jobs.append(["fetch_NMT", {"which": "FR"}])
-jobs.append(["fetch_NMT", {"which": "DE"}])
+# jobs.append(["fetch_NMT", {"which": "FR"}])
+# jobs.append(["fetch_NMT", {"which": "DE"}])
 
 ## PDC and HDC
 
-for dim in [50, 100, 300]:
-    jobs.append(["fetch_PDC", {"dim": dim}])
-    jobs.append(["fetch_HDC", {"dim": dim}])
+# for dim in [50, 100, 300]:
+#     jobs.append(["fetch_PDC", {"dim": dim}])
+#     jobs.append(["fetch_HDC", {"dim": dim}])
 
 ## SG
 
-jobs.append(["fetch_SG_GoogleNews", {}])
+# jobs.append(["fetch_SG_GoogleNews", {}])
 
 ## LexVec
 
 jobs.append(["fetch_LexVec", {}])
 
 ## ConceptNet Numberbatch
-jobs.append(["fetch_conceptnet_numberbatch", {}])
+# jobs.append(["fetch_conceptnet_numberbatch", {}])
 
 ## FastText
-jobs.append(["fetch_FastText", {}])
+# jobs.append(["fetch_FastText", {'clean_words': True}])
+
 
 def run_job(j):
     fn, kwargs = j
-    outf = path.join(opts.output_dir, fn + "_" + "_".join(str(k) + "=" + str(v) for k,v in iteritems(kwargs))) + ".csv"
+    outf = path.join(opts.output_dir, fn + "_" + "_".join(str(k) + "=" + str(v) for k, v in iteritems(kwargs))) + ".csv"
     logger.info("Processing " + outf)
     if not path.exists(outf):
         w = getattr(embeddings, fn)(**kwargs)
         res = evaluate_on_all(w)
         res.to_csv(outf)
+
 
 if __name__ == "__main__":
     Pool(opts.n_jobs).map(run_job, jobs)

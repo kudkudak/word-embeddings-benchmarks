@@ -60,3 +60,23 @@ target/
 
 #Pycharm
 .idea/
+/scripts/fetch_GloVe_corpus=twitter-27B_dim=200.csv
+/scripts/fetch_GloVe_dim=300_corpus=wiki-6B.csv
+/scripts/fetch_PDC_dim=100.csv
+/scripts/fetch_conceptnet_numberbatch_.csv
+/scripts/fetch_GloVe_dim=200_corpus=wiki-6B.csv
+/scripts/fetch_GloVe_dim=25_corpus=twitter-27B.csv
+/scripts/fetch_HDC_dim=50.csv
+/scripts/fetch_HDC_dim=100.csv
+/scripts/fetch_LexVec_.csv
+/scripts/fetch_PDC_dim=50.csv
+/scripts/fetch_GloVe_dim=100_corpus=wiki-6B.csv
+/scripts/fetch_GloVe_corpus=twitter-27B_dim=25.csv
+/scripts/fetch_GloVe_corpus=twitter-27B_dim=50.csv
+/scripts/fetch_GloVe_corpus=wiki-6B_dim=50.csv
+/scripts/fetch_GloVe_corpus=wiki-6B_dim=100.csv
+/scripts/fetch_HDC_dim=300.csv
+/scripts/fetch_GloVe_corpus=twitter-27B_dim=100.csv
+/scripts/fetch_PDC_dim=300.csv
+/scripts/fetch_GloVe_dim=50_corpus=wiki-6B.csv
+/scripts/fetch_GloVe_dim=100_corpus=twitter-27B.csv

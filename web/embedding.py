@@ -88,11 +88,14 @@ class Embedding(object):
             return default
 
     def standardize_words(self, lower=False, clean_words=False, inplace=False):
-        return self.transform_words(partial(standardize_string, lower=lower, clean_words=clean_words),
-                                    inplace=inplace)
+        tw = self.transform_words(partial(standardize_string, lower=lower, clean_words=clean_words), inplace=inplace)
+
+        if clean_words:
+            tw = tw.transform_words(partial(lambda w: w.strip(" ")), inplace=inplace)
+        return tw
 
     def transform_words(self, f, inplace=False):
-        """ Tranform words in vocabulary """
+        """ Transform words in vocabulary """
         id_map = OrderedDict()
         word_count = len(self.vectors)
         # store max word length before f(w)- in corpora
@@ -123,7 +126,7 @@ class Embedding(object):
 
                 # overwrite
             elif len(fw) and fw in id_map:
-                if counter_of_words[id] > counts[fw] and len(w) <= words_len[fw]:
+                if counter_of_words[id] > counts[fw]:
                     id_map[fw] = id
 
                     counts[fw] = counter_of_words[id]
@@ -134,7 +137,7 @@ class Embedding(object):
                     counts[fw] = counter_of_words[id]
                     words_len[fw] = len(w)
 
-            logger.warning("Overwritting {}".format(fw))
+                logger.warning("Overwriting {}".format(fw))
 
         if isinstance(self.vocabulary, CountedVocabulary):
             words_only = id_map.keys()
@@ -149,7 +152,7 @@ class Embedding(object):
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
             vectors = self.vectors[[id_map[w] for w in words]]
 
-        logger.info("Tranformed {} into {} words".format(word_count, len(words)))
+        logger.info("Transformed {} into {} words".format(word_count, len(words)))
 
         if inplace:
             self.vectors = vectors
@@ -246,7 +249,7 @@ class Embedding(object):
         with _open(fvocab) as fin:
             for line in fin:
                 # todo without strip
-                word, count = standardize_string(line).strip().split()
+                word, count = standardize_string(line).split()
                 if word:
                     counts[word] = int(count)
         return CountedVocabulary(word_count=counts)
@@ -415,7 +418,7 @@ class Embedding(object):
 
         content = _open(fname).read()
         if PY2:
-            state = pickle.loads(content)
+            state = pickle.loads(content, encoding='latin1')
         else:
             state = pickle.loads(content, encoding='latin1')
         voc, vec = state

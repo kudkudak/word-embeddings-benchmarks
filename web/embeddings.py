@@ -40,7 +40,7 @@ def load_embedding(fname, format="word2vec_bin", normalize=True,
     elif format == "glove":
         w = Embedding.from_glove(fname, **load_kwargs)
     elif format == "dict":
-        d = pickle.load(open(fname, "rb"))
+        d = pickle.load(open(fname, "rb"), encoding='latin1')
         w = Embedding.from_dict(d)
     if normalize:
         w.normalize_words(inplace=True)
