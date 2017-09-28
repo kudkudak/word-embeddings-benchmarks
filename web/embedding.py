@@ -266,12 +266,22 @@ class Embedding(object):
             for line_no in range(vocab_size):
                 # mixed text and binary: read text first, then binary
                 word = []
+                ch = fin.read(1)
+
                 while True:
-                    ch = fin.read(1)
                     if ch == b' ':
-                        break
+                        ch_n = fin.read(1)
+
+                        if ch_n == b'\n':
+                            word.append(ch)
+                            break
+                        if ch_n == b' ':
+                            word.append(ch)
+                            ch = ch_n
                     if ch != b'\n':  # ignore newlines in front of words (some binary files have newline, some don't)
                         word.append(ch)
+
+                    ch = fin.read(1)
 
                 words.append(b''.join(word).decode("latin-1"))
                 vectors[line_no, :] = np.fromstring(fin.read(binary_len), dtype=np.float32)
@@ -287,15 +297,28 @@ class Embedding(object):
     def _from_word2vec_text(fname):
         with _open(fname, 'r') as fin:
             words = []
+
+            word_bug_catcher = set('')
             header = fin.readline()
             ignored = 0
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
             vectors = np.zeros(shape=(vocab_size, layer1_size), dtype=np.float32)
             for line_no, line in enumerate(fin):
                 try:
-                    parts = text_type(line, encoding="utf-8").strip().split()
+                    parts = text_type(line, encoding="utf-8").split(' ')
+                    w = parts[0]
+                    parts = list(map(lambda x: x.strip(), parts[1:]))
+                    parts.insert(0, w)
+                #     todo add wordfirst
                 except TypeError as e:
-                    parts = line.strip().split()
+                    parts = line.split(' ')
+                    w = parts[0]
+                    parts = list(map(lambda x: x.strip(), parts[1:]))
+                    parts.insert(0, w)
+                    # tmp = []
+                    # for v in parts[1:]:
+                    #     tmp.append(v.strip())
+                    # parts[1:] = tmp
                 except Exception as e:
                     logger.warning("We ignored line number {} because of erros in parsing"
                                    "\n{}".format(line_no, e))
@@ -315,6 +338,11 @@ class Embedding(object):
                     continue
 
                 words.append(word)
+                word_bug_catcher.add(word)
+
+                if len(words) != len(word_bug_catcher):
+                    print('Incorrect len of words= "{0}" '.format(word))
+
             if ignored:
                 vectors = vectors[0:-ignored]
 

@@ -56,13 +56,13 @@ jobs = []
 
 ## LexVec
 
-jobs.append(["fetch_LexVec", {}])
+# jobs.append(["fetch_LexVec", {}])
 
 ## ConceptNet Numberbatch
 # jobs.append(["fetch_conceptnet_numberbatch", {}])
 
 ## FastText
-# jobs.append(["fetch_FastText", {'clean_words': True}])
+jobs.append(["fetch_FastText", {'clean_words': False}])
 
 
 def run_job(j):
