@@ -102,6 +102,7 @@ class Embedding(object):
         words_len = {}
         # store max occurrence count of word
         counts = {}
+        isVocabGeneric = False
 
         if isinstance(self.vocabulary, CountedVocabulary):
             _, counter_of_words = self.vocabulary.getstate()
@@ -114,6 +115,7 @@ class Embedding(object):
 
         elif isinstance(self.vocabulary, Vocabulary):
             counter_of_words = SingleValDict(0xdeadbeef)
+            isVocabGeneric = True
 
         for id, w in enumerate(self.vocabulary.words):
 
@@ -299,7 +301,7 @@ class Embedding(object):
                     w = parts[0]
                     parts = list(map(lambda x: x.strip(), parts[1:]))
                     parts.insert(0, w)
-                #     todo add wordfirst
+                # todo add wordfirst
                 except TypeError as e:
                     parts = line.split(' ')
                     w = parts[0]
@@ -313,11 +315,31 @@ class Embedding(object):
                 # We differ from Gensim implementation.
                 # Our assumption that a difference of one happens because of having a
                 # space in the word.
+
+                #
+                # x =parts[280:]
+                # nbf = False
+                # try:
+                #     np.float32(parts[1])
+                #     nbf = True
+                #
+                #     for i in range(1, len(parts)):
+                #         np.float32(parts[i])
+                #         print('Index {} val {}'.format(i, parts[i]))
+                # except Exception as e:
+                #     logger.warning("We ignored line number {} because of unrecognized "
+                #                    "number of columns {}".format(line_no, parts[:-layer1_size]))
+                #     # todo better solution
+                #     continue
+
                 if len(parts) == layer1_size + 1:
                     word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[1:]))
-                elif len(parts) == layer1_size + 2:
+                elif len(parts) == layer1_size + 2 and parts[-1]:
                     word, vectors[line_no - ignored] = parts[:2], list(map(np.float32, parts[2:]))
                     word = u" ".join(word)
+                elif not parts[-1]:
+                    # omit last value - empty string
+                    word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[1:-1]))
                 else:
                     ignored += 1
                     logger.warning("We ignored line number {} because of unrecognized "
@@ -325,10 +347,10 @@ class Embedding(object):
                     continue
 
                 words.append(word)
-                word_bug_catcher.add(word)
+                # word_bug_catcher.add(word)
 
-                if len(words) != len(word_bug_catcher):
-                    print('Incorrect len of words= "{0}" '.format(word))
+                # if len(words) != len(word_bug_catcher):
+                #     print('Incorrect len of words= "{0}" '.format(word))
 
             if ignored:
                 vectors = vectors[0:-ignored]
