@@ -364,8 +364,7 @@ class Embedding(object):
                     continue
 
                 try:
-                    word, vectors[line_no - ignored] = " ".join(parts[0:len(parts) - dim]), list(
-                        map(np.float32, parts[len(parts) - dim:]))
+                    word, vectors[line_no - ignored] = " ".join(parts[0:len(parts) - dim]), list(map(np.float32, parts[len(parts) - dim:]))
                     words.append(word)
                 except Exception as e:
                     ignored += 1
