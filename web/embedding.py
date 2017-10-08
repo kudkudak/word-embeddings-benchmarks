@@ -132,10 +132,9 @@ class Embedding(object):
                     counts[fw] = counter_of_words[id]
                     words_len[fw] = len(w)
                 elif is_vocab_generic and len(w) < words_len[fw]:
+                    # for generic Vocabulary
                     id_map[fw] = id
 
-                    # todo refactor magic const
-                    # counts[fw] = counter_of_words[id] = 1
                     words_len[fw] = len(w)
 
                 elif not is_vocab_generic and counter_of_words[id] == counts[fw] and len(w) < words_len[fw]:
