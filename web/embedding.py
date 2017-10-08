@@ -295,7 +295,6 @@ class Embedding(object):
         with _open(fname, 'r') as fin:
             words = []
 
-            word_bug_catcher = set('')
             header = fin.readline()
             ignored = 0
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
@@ -317,26 +316,10 @@ class Embedding(object):
                     logger.warning("We ignored line number {} because of erros in parsing"
                                    "\n{}".format(line_no, e))
                     continue
+
                 # We differ from Gensim implementation.
                 # Our assumption that a difference of one happens because of having a
                 # space in the word.
-
-                #
-                # x =parts[280:]
-                # nbf = False
-                # try:
-                #     np.float32(parts[1])
-                #     nbf = True
-                #
-                #     for i in range(1, len(parts)):
-                #         np.float32(parts[i])
-                #         print('Index {} val {}'.format(i, parts[i]))
-                # except Exception as e:
-                #     logger.warning("We ignored line number {} because of unrecognized "
-                #                    "number of columns {}".format(line_no, parts[:-layer1_size]))
-                #     # todo better solution
-                #     continue
-
                 if len(parts) == layer1_size + 1:
                     word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[1:]))
                 elif len(parts) == layer1_size + 2 and parts[-1]:
@@ -352,10 +335,6 @@ class Embedding(object):
                     continue
 
                 words.append(word)
-                # word_bug_catcher.add(word)
-
-                # if len(words) != len(word_bug_catcher):
-                #     print('Incorrect len of words= "{0}" '.format(word))
 
             if ignored:
                 vectors = vectors[0:-ignored]
@@ -481,10 +460,3 @@ class Embedding(object):
         with open(fname, 'wb') as f:
             pickle.dump(state, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-#
-# class SingleValDict(dict):
-#     def __init__(self, v):
-#         self.val = v
-#
-#     def __getitem__(self, item):
-#         return self.val

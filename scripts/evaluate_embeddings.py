@@ -46,23 +46,23 @@ jobs.append(["fetch_NMT", {"which": "DE"}])
 
 ## PDC and HDC
 
-# for dim in [50, 100, 300]:
-#     jobs.append(["fetch_PDC", {"dim": dim}])
-#     jobs.append(["fetch_HDC", {"dim": dim}])
+for dim in [50, 100, 300]:
+    jobs.append(["fetch_PDC", {"dim": dim}])
+    jobs.append(["fetch_HDC", {"dim": dim}])
 
 ## SG
 
-# jobs.append(["fetch_SG_GoogleNews", {}])
+jobs.append(["fetch_SG_GoogleNews", {}])
 
 ## LexVec
 
-# jobs.append(["fetch_LexVec", {}])
+jobs.append(["fetch_LexVec", {}])
 
 ## ConceptNet Numberbatch
-# jobs.append(["fetch_conceptnet_numberbatch", {}])
+jobs.append(["fetch_conceptnet_numberbatch", {}])
 
 ## FastText
-# jobs.append(["fetch_FastText", {'clean_words': False}])
+jobs.append(["fetch_FastText", {'clean_words': False}])
 
 
 def run_job(j):
