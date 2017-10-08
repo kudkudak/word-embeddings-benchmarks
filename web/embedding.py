@@ -102,38 +102,43 @@ class Embedding(object):
         words_len = {}
         # store max occurrence count of word
         counts = {}
-        isVocabGeneric = False
+        is_vocab_generic = False
 
         if isinstance(self.vocabulary, CountedVocabulary):
             _, counter_of_words = self.vocabulary.getstate()
         elif isinstance(self.vocabulary, OrderedVocabulary):
-            if sys.version_info[0] < 3:
-                counter_of_words = xrange(len(self.vocabulary.words) - 1, -1, -1)
-            else:
-                # range in python3 is lazy
-                counter_of_words = range(len(self.vocabulary.words) - 1, -1, -1)
+            # range in python3 is lazy
+            counter_of_words = range(len(self.vocabulary.words) - 1, -1, -1)
 
         elif isinstance(self.vocabulary, Vocabulary):
-            counter_of_words = SingleValDict(0xdeadbeef)
-            isVocabGeneric = True
+            # counter_of_words = SingleValDict(0xdeadbeef)
+            is_vocab_generic = True
 
         for id, w in enumerate(self.vocabulary.words):
 
             fw = f(w)
             if len(fw) and fw not in id_map:
                 id_map[fw] = id
-
-                counts[fw] = counter_of_words[id]
+                # todo for Vocabulary
+                if not is_vocab_generic:
+                    counts[fw] = counter_of_words[id]
                 words_len[fw] = len(w)
 
                 # overwrite
             elif len(fw) and fw in id_map:
-                if counter_of_words[id] > counts[fw]:
+                if not is_vocab_generic and counter_of_words[id] > counts[fw]:
                     id_map[fw] = id
 
                     counts[fw] = counter_of_words[id]
                     words_len[fw] = len(w)
-                elif counter_of_words[id] == counts[fw] and len(w) < words_len[fw]:
+                elif is_vocab_generic and len(w) < words_len[fw]:
+                    id_map[fw] = id
+
+                    # todo refactor magic const
+                    # counts[fw] = counter_of_words[id] = 1
+                    words_len[fw] = len(w)
+
+                elif not is_vocab_generic and counter_of_words[id] == counts[fw] and len(w) < words_len[fw]:
                     id_map[fw] = id
 
                     counts[fw] = counter_of_words[id]
@@ -476,10 +481,10 @@ class Embedding(object):
         with open(fname, 'wb') as f:
             pickle.dump(state, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-
-class SingleValDict(dict):
-    def __init__(self, v):
-        self.val = v
-
-    def __getitem__(self, item):
-        return self.val
+#
+# class SingleValDict(dict):
+#     def __init__(self, v):
+#         self.val = v
+#
+#     def __getitem__(self, item):
+#         return self.val
