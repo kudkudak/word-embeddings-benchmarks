@@ -226,3 +226,5 @@ class CountedVocabulary(OrderedVocabulary):
         word_count = [x.strip().split() for x in _open(filename, 'r').read().splitlines()]
         word_count = OrderedDict([(w, int(c)) for w, c in word_count])
         return CountedVocabulary(word_count=word_count)
+
+

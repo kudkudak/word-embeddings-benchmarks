@@ -111,7 +111,6 @@ class Embedding(object):
             counter_of_words = range(len(self.vocabulary.words) - 1, -1, -1)
 
         elif isinstance(self.vocabulary, Vocabulary):
-            # counter_of_words = SingleValDict(0xdeadbeef)
             is_vocab_generic = True
 
         for id, w in enumerate(self.vocabulary.words):
@@ -136,7 +135,6 @@ class Embedding(object):
                     id_map[fw] = id
 
                     words_len[fw] = len(w)
-
                 elif not is_vocab_generic and counter_of_words[id] == counts[fw] and len(w) < words_len[fw]:
                     id_map[fw] = id
 
@@ -254,7 +252,7 @@ class Embedding(object):
         counts = {}
         with _open(fvocab) as fin:
             for line in fin:
-                # todo without strip
+
                 word, count = standardize_string(line).split()
                 if word:
                     counts[word] = int(count)
@@ -304,7 +302,7 @@ class Embedding(object):
                     w = parts[0]
                     parts = list(map(lambda x: x.strip(), parts[1:]))
                     parts.insert(0, w)
-                # todo add wordfirst
+
                 except TypeError as e:
                     parts = line.split(' ')
                     w = parts[0]
@@ -349,13 +347,29 @@ class Embedding(object):
     def from_glove(fname, vocab_size, dim):
         with _open(fname, 'r') as fin:
             words = []
+            words_linenb= OrderedDict()
+
+            all_words =set()
+            delta = 0
+
             ignored = 0
             vectors = np.zeros(shape=(vocab_size, dim), dtype=np.float32)
             for line_no, line in enumerate(fin):
                 try:
-                    parts = text_type(line, encoding="utf-8").strip().split()
+                    # todo probably bugy code
+                    # parts = text_type(line, encoding="utf-8").strip().split()
+
+                    parts = text_type(line, encoding="utf-8").split(' ')
+                    w = parts[0]
+                    parts = list(map(lambda x: x.strip(), parts[1:]))
+                    parts.insert(0, w)
                 except TypeError as e:
-                    parts = line.strip().split()
+                    # parts = line.strip().split()
+
+                    parts = line.split(' ')
+                    w = parts[0]
+                    parts = list(map(lambda x: x.strip(), parts[1:]))
+                    parts.insert(0, w)
                 except Exception as e:
                     ignored += 1
                     logger.warning("We ignored line number {} because of erros in parsing"
@@ -365,12 +379,29 @@ class Embedding(object):
                 try:
                     word, vectors[line_no - ignored] = " ".join(parts[0:len(parts) - dim]), list(map(np.float32, parts[len(parts) - dim:]))
                     words.append(word)
+                    all_words.add(word)
+
+                    l = len(word)
+                    # delta =0
+                    if len(words) != len(all_words) + delta:
+                        print("Broken WORD:'{}'".format(word))
                 except Exception as e:
                     ignored += 1
-                    logger.warning("We ignored line number {} because of erros in parsing"
+                    logger.warning("We ignored line number {} because of errors in parsing"
                                    "\n{}".format(line_no, e))
 
-            return Embedding(vocabulary=OrderedVocabulary(words), vectors=vectors[0:len(words)])
+            vl = vectors[-10]
+            sw = set(words)
+            if len(words) != len(sw):
+                print("Error ", len(words))
+                for ik, k in enumerate(words):
+                    for iss, s in enumerate(words):
+                         if k == s and ik != iss:
+                             print("Duplicated:'{}'".format(k))
+
+
+            vec = vectors[0:len(words)]
+            return Embedding(vocabulary=OrderedVocabulary(words), vectors=vec)
 
     @staticmethod
     def from_dict(d):
