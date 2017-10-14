@@ -381,7 +381,7 @@ class Embedding(object):
                     if parts[0] not in words_linenb:
                         word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[len(parts) - dim:]))
                         words.append(word)
-                        words_linenb.add(w)
+                        words_linenb.add(word)
                     else:
                         ignored += 1
 
@@ -392,7 +392,7 @@ class Embedding(object):
 
             # words = list(words_linenb.keys())
             # vec = np.array(words_linenb.values())
-            return Embedding(vocabulary=OrderedVocabulary(words), vectors=vectors)
+            return Embedding(vocabulary=OrderedVocabulary(words), vectors=vectors[0:len(words)])
 
     @staticmethod
     def from_dict(d):
