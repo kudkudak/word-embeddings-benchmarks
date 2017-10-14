@@ -346,61 +346,42 @@ class Embedding(object):
     @staticmethod
     def from_glove(fname, vocab_size, dim):
         with _open(fname, 'r') as fin:
-            words = []
-            words_linenb= OrderedDict()
 
-            all_words =set()
-            delta = 0
+            words_linenb = OrderedDict()
 
-            ignored = 0
-            vectors = np.zeros(shape=(vocab_size, dim), dtype=np.float32)
             for line_no, line in enumerate(fin):
                 try:
-                    # todo probably bugy code
-                    # parts = text_type(line, encoding="utf-8").strip().split()
-
                     parts = text_type(line, encoding="utf-8").split(' ')
                     w = parts[0]
-                    parts = list(map(lambda x: x.strip(), parts[1:]))
-                    parts.insert(0, w)
+                    if w not in words_linenb:
+                        words_linenb[w] = list(map(lambda x: np.float32(x.strip()), parts[1:]))
+
                 except TypeError as e:
-                    # parts = line.strip().split()
 
                     parts = line.split(' ')
                     w = parts[0]
-                    parts = list(map(lambda x: x.strip(), parts[1:]))
-                    parts.insert(0, w)
+                    if w not in words_linenb:
+                        words_linenb[w] = list(map(lambda x: np.float32(x.strip()), parts[1:]))
+
                 except Exception as e:
-                    ignored += 1
+                    # ignored += 1
+                    # todo add supoort for exception
                     logger.warning("We ignored line number {} because of erros in parsing"
                                    "\n{}".format(line_no, e))
                     continue
 
-                try:
-                    word, vectors[line_no - ignored] = " ".join(parts[0:len(parts) - dim]), list(map(np.float32, parts[len(parts) - dim:]))
-                    words.append(word)
-                    all_words.add(word)
+                # print("Word ", line)
+                # try:
+                #     word, vectors[line_no - ignored] = " ".join(parts[0:len(parts) - dim]), list(map(np.float32, parts[len(parts) - dim:]))
+                #     words.append(word)
+                #
+                # except Exception as e:
+                #     ignored += 1
+                #     logger.warning("We ignored line number {} because of errors in parsing"
+                #                    "\n{}".format(line_no, e))
 
-                    l = len(word)
-                    # delta =0
-                    if len(words) != len(all_words) + delta:
-                        print("Broken WORD:'{}'".format(word))
-                except Exception as e:
-                    ignored += 1
-                    logger.warning("We ignored line number {} because of errors in parsing"
-                                   "\n{}".format(line_no, e))
-
-            vl = vectors[-10]
-            sw = set(words)
-            if len(words) != len(sw):
-                print("Error ", len(words))
-                for ik, k in enumerate(words):
-                    for iss, s in enumerate(words):
-                         if k == s and ik != iss:
-                             print("Duplicated:'{}'".format(k))
-
-
-            vec = vectors[0:len(words)]
+            words = list(words_linenb.keys())
+            vec = np.array(list(words_linenb.values()))
             return Embedding(vocabulary=OrderedVocabulary(words), vectors=vec)
 
     @staticmethod
