@@ -370,7 +370,7 @@ class Embedding(object):
                     #     words_linenb.add(w)# = list(map(lambda x: np.float32(x.strip()), parts[1:]))
 
                 except Exception as e:
-                    # ignored += 1
+                    ignored += 1
                     # todo add supoort for exception
                     logger.warning("We ignored line number {} because of erros in parsing"
                                    "\n{}".format(line_no, e))
@@ -381,6 +381,7 @@ class Embedding(object):
                     if w not in words_linenb:
                         word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[len(parts) - dim:]))
                         words.append(word)
+                        words_linenb.add(w)
 
                 except Exception as e:
                     ignored += 1
