@@ -347,7 +347,7 @@ class Embedding(object):
     def from_glove(fname, vocab_size, dim):
         with _open(fname, 'r') as fin:
 
-            words=[]
+            words = []
             words_linenb = set()
 
             ignored = 0
@@ -355,16 +355,16 @@ class Embedding(object):
             for line_no, line in enumerate(fin):
                 try:
                     parts = text_type(line, encoding="utf-8").split(' ')
-                    w = parts[0]
+                    # w = parts[0]
                     parts[1:] = map(lambda x: np.float32(x.strip()), parts[1:])
                     # if w not in words_linenb:
-                        # words_linenb[w] = list(map(lambda x: np.float32(x.strip()), parts[1:]))
-                        # words_linenb.add(w)
+                    # words_linenb[w] = list(map(lambda x: np.float32(x.strip()), parts[1:]))
+                    # words_linenb.add(w)
 
                 except TypeError as e:
 
                     parts = line.split(' ')
-                    w = parts[0]
+                    # w = parts[0]
                     parts[1:] = map(lambda x: np.float32(x.strip()), parts[1:])
                     # if w not in words_linenb:
                     #     words_linenb.add(w)# = list(map(lambda x: np.float32(x.strip()), parts[1:]))
@@ -479,4 +479,3 @@ class Embedding(object):
         state = (voc, vec)
         with open(fname, 'wb') as f:
             pickle.dump(state, f, protocol=pickle.HIGHEST_PROTOCOL)
-
