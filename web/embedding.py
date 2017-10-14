@@ -378,10 +378,12 @@ class Embedding(object):
 
                 # print("Word ", line)
                 try:
-                    if w not in words_linenb:
+                    if parts[0] not in words_linenb:
                         word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[len(parts) - dim:]))
                         words.append(word)
                         words_linenb.add(w)
+                    else:
+                        ignored += 1
 
                 except Exception as e:
                     ignored += 1
