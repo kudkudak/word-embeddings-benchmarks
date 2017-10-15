@@ -376,7 +376,7 @@ class Embedding(object):
                     else:
                         ignored += 1
                         logger.warning(
-                            "We ignored line number {} - following word is duplicated in file\n{}".format(line_no, parts[0]))
+                            "We ignored line number {} - following word is duplicated in file:\n{}\n".format(line_no, parts[0]))
 
                 except Exception as e:
                     ignored += 1
