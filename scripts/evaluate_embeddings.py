@@ -36,8 +36,8 @@ for dim in [50, 100, 200, 300]:
 for dim in [25, 50, 100, 200]:
     jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "twitter-27B"}])
 
-# "common-crawl-42B",
-for corpus in [ "common-crawl-840B"]:
+
+for corpus in ["common-crawl-42B", "common-crawl-840B"]:
     jobs.append(["fetch_GloVe", {"dim": 300, "corpus": corpus}])
 
 ## NMT
