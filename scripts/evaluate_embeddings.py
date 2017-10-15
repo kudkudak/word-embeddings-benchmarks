@@ -30,11 +30,11 @@ jobs = []
 
 ## GloVe
 
-# for dim in [50, 100, 200, 300]:
-#     jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "wiki-6B"}])
+for dim in [50, 100, 200, 300]:
+    jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "wiki-6B"}])
 
-# for dim in [25, 50, 100, 200]:
-#     jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "twitter-27B"}])
+for dim in [25, 50, 100, 200]:
+    jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "twitter-27B"}])
 
 # "common-crawl-42B",
 for corpus in [ "common-crawl-840B"]:
@@ -42,28 +42,28 @@ for corpus in [ "common-crawl-840B"]:
 
 ## NMT
 
-# jobs.append(["fetch_NMT", {"which": "FR"}])
-# jobs.append(["fetch_NMT", {"which": "DE"}])
+jobs.append(["fetch_NMT", {"which": "FR"}])
+jobs.append(["fetch_NMT", {"which": "DE"}])
 
 ## PDC and HDC
 
-# for dim in [50, 100, 300]:
-#     jobs.append(["fetch_PDC", {"dim": dim}])
-#     jobs.append(["fetch_HDC", {"dim": dim}])
+for dim in [50, 100, 300]:
+    jobs.append(["fetch_PDC", {"dim": dim}])
+    jobs.append(["fetch_HDC", {"dim": dim}])
 
 ## SG
 
-# jobs.append(["fetch_SG_GoogleNews", {}])
+jobs.append(["fetch_SG_GoogleNews", {}])
 
 ## LexVec
 
-# jobs.append(["fetch_LexVec", {}])
+jobs.append(["fetch_LexVec", {}])
 
 ## ConceptNet Numberbatch
-# jobs.append(["fetch_conceptnet_numberbatch", {}])
+jobs.append(["fetch_conceptnet_numberbatch", {}])
 
 ## FastText
-# jobs.append(["fetch_FastText", {}])
+jobs.append(["fetch_FastText", {}])
 
 
 def run_job(j):
