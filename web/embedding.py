@@ -349,56 +349,40 @@ class Embedding(object):
 
             words = []
             words_uniq = set()
-            test_words = OrderedDict()
 
             ignored = 0
             vectors = np.zeros(shape=(vocab_size, dim), dtype=np.float32)
             for line_no, line in enumerate(fin):
                 try:
                     parts = text_type(line, encoding="utf-8").split(' ')
-                    # w = parts[0]
                     parts[1:] = map(lambda x: np.float32(x.strip()), parts[1:])
-                    if w not in test_words and w not in words_uniq:
-                        test_words[w] = parts[1:]#list(map(lambda x: np.float32(x.strip()), parts[1:]))
-                    # words_linenb.add(w)
-
                 except TypeError as e:
 
                     parts = line.split(' ')
-                    w = parts[0]
                     parts[1:] = map(lambda x: np.float32(x.strip()), parts[1:])
-                    if w not in test_words and w not in words_uniq:
-                        test_words[w] = parts[1:]#list(map(lambda x: np.float32(x.strip()), parts[1:]))
 
                 except Exception as e:
                     ignored += 1
-                    # todo add supoort for exception
+
                     logger.warning("We ignored line number {} because of errors in parsing"
                                    "\n{}".format(line_no, e))
                     continue
 
-                # print("Word ", line)
                 try:
                     if parts[0] not in words_uniq:
-                        word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[len(parts) - dim:]))
+                        word, vectors[line_no - ignored] = parts[0], list(parts[len(parts) - dim:])
                         words.append(word)
                         words_uniq.add(word)
                     else:
                         ignored += 1
+                        logger.warning(
+                            "We ignored line number {} - following word is duplicated in file\n{}".format(line_no, parts[0]))
 
                 except Exception as e:
                     ignored += 1
                     logger.warning("We ignored line number {} because of errors in parsing"
                                    "\n{}".format(line_no, e))
-            # test
 
-
-                # print("Before")
-                if not np.array_equal(test_words[word], vectors[tuple(test_words.keys()).index(word)]):
-                   print("Bugged assingment")
-
-            # words = list(words_linenb.keys())
-            # vec = np.array(words_linenb.values())
             return Embedding(vocabulary=OrderedVocabulary(words), vectors=vectors[0:len(words)])
 
     @staticmethod
