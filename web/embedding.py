@@ -118,7 +118,7 @@ class Embedding(object):
             fw = f(w)
             if len(fw) and fw not in id_map:
                 id_map[fw] = id
-                # todo for Vocabulary
+
                 if not is_vocab_generic:
                     counts[fw] = counter_of_words[id]
                 words_len[fw] = len(w)
