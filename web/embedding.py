@@ -105,8 +105,7 @@ class Embedding(object):
         is_vocab_generic = False
 
         curr_words = self.vocabulary.words
-        curr
-        _vec = self.vectors
+        curr_vec = self.vectors
 
         if isinstance(self.vocabulary, CountedVocabulary):
             _, counter_of_words = self.vocabulary.getstate()
