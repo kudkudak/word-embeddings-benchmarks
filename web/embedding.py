@@ -88,13 +88,13 @@ class Embedding(object):
             return default
 
     def standardize_words(self, lower=False, clean_words=False, inplace=False):
-        tw = self.transform_words(partial(standardize_string, lower=lower, clean_words=clean_words), inplace=inplace)
+        tw = self.transform_words(partial(standardize_string, lower=lower, clean_words=clean_words), inplace=inplace, lower=lower)
 
         if clean_words:
-            tw = tw.transform_words(partial(lambda w: w.strip(" ")), inplace=inplace)
+            tw = tw.transform_words(partial(lambda w: w.strip(" ")), inplace=inplace, lower=lower)
         return tw
 
-    def transform_words(self, f, inplace=False):
+    def transform_words(self, f, inplace=False, lower=False):
         """ Transform words in vocabulary """
         id_map = OrderedDict()
         word_count = len(self.vectors)
@@ -104,6 +104,10 @@ class Embedding(object):
         counts = {}
         is_vocab_generic = False
 
+        curr_words = self.vocabulary.words
+        curr
+        _vec = self.vectors
+
         if isinstance(self.vocabulary, CountedVocabulary):
             _, counter_of_words = self.vocabulary.getstate()
         elif isinstance(self.vocabulary, OrderedVocabulary):
@@ -112,8 +116,22 @@ class Embedding(object):
 
         elif isinstance(self.vocabulary, Vocabulary):
             is_vocab_generic = True
+            # if corpora contain lowercase version of word i- for case Vocabulary
+            lowered_words = {}
 
-        for id, w in enumerate(self.vocabulary.words):
+            if lower:
+
+                for w, v in zip(self.vocabulary.words, self.vectors):
+                    wl = w.lower()
+                    if wl == w:
+                        lowered_words[wl] = v
+                    elif wl != w and wl not in lowered_words:
+                        lowered_words[wl] = v
+
+                curr_words = list(lowered_words.keys())
+                curr_vec = np.asanyarray(list(lowered_words.values()))
+
+        for id, w in enumerate(curr_words):
 
             fw = f(w)
             if len(fw) and fw not in id_map:
@@ -145,18 +163,18 @@ class Embedding(object):
 
         if isinstance(self.vocabulary, CountedVocabulary):
             words_only = id_map.keys()
-            vectors = self.vectors[[id_map[w] for w in words_only]]
+            vectors = curr_vec[[id_map[w] for w in words_only]]
             words = {w: counter_of_words[id_map[w]] for w in words_only}
 
         elif isinstance(self.vocabulary, OrderedVocabulary):
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
-            vectors = self.vectors[[id_map[w] for w in words]]
+            vectors = curr_vec[[id_map[w] for w in words]]
 
         elif isinstance(self.vocabulary, Vocabulary):
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
-            vectors = self.vectors[[id_map[w] for w in words]]
+            vectors = curr_vec[[id_map[w] for w in words]]
 
-        logger.info("Transformed {} into {} words".format(word_count, len(words)))
+        logger.info("Transformed {} into {} words".format(word_count, len(curr_words)))
 
         if inplace:
             self.vectors = vectors
@@ -376,7 +394,8 @@ class Embedding(object):
                     else:
                         ignored += 1
                         logger.warning(
-                            "We ignored line number {} - following word is duplicated in file:\n{}\n".format(line_no, parts[0]))
+                            "We ignored line number {} - following word is duplicated in file:\n{}\n".format(line_no,
+                                                                                                             parts[0]))
 
                 except Exception as e:
                     ignored += 1
