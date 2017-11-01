@@ -103,6 +103,22 @@ class Embedding(object):
         This allow eliminate noisy and wrong coded words.
 
         Strategy is implemented for all types of Vocabulary- they can be polymorphicaly extended.
+
+        Parameters
+       ----------
+       f: lambda
+         Function called on each word- for transformation it.
+
+       inplace: bool, default: False
+         Return new Embedding instance or modify existing
+
+       lower: bool, default: False
+         If true, will convert all words to lowercase
+
+       Returns
+       -------
+        e: Embedding
+        Instance of Embedding class with this same Vocabulary type as previous.
         """
         id_map = OrderedDict()
         word_count = len(self.vectors)
