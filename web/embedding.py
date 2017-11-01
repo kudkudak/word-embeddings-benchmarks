@@ -88,7 +88,8 @@ class Embedding(object):
             return default
 
     def standardize_words(self, lower=False, clean_words=False, inplace=False):
-        tw = self.transform_words(partial(standardize_string, lower=lower, clean_words=clean_words), inplace=inplace, lower=lower)
+        tw = self.transform_words(partial(standardize_string, lower=lower, clean_words=clean_words), inplace=inplace,
+                                  lower=lower)
 
         if clean_words:
             tw = tw.transform_words(partial(lambda w: w.strip(" ")), inplace=inplace, lower=lower)
@@ -180,7 +181,8 @@ class Embedding(object):
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
             vectors = curr_vec[[id_map[w] for w in words]]
         else:
-            raise NotImplementedError('This kind of Vocabulary is not implemented in transform_words strategy and can not be mathed')
+            raise NotImplementedError(
+                'This kind of Vocabulary is not implemented in transform_words strategy and can not be mathed')
 
         logger.info("Transformed {} into {} words".format(word_count, len(curr_words)))
 
@@ -345,8 +347,8 @@ class Embedding(object):
                 # space in the word.
                 if len(parts) == layer1_size + 1:
                     word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[1:]))
-                # standard case where last element after splitting is not empty- some glove corpora have additional space
                 elif len(parts) == layer1_size + 2 and parts[-1]:
+                    # last element after splitting is not empty- some glove corpora have additional space
                     word, vectors[line_no - ignored] = parts[:2], list(map(np.float32, parts[2:]))
                     word = u" ".join(word)
                 elif not parts[-1]:
