@@ -105,18 +105,18 @@ class Embedding(object):
         Strategy is implemented for all types of Vocabulary- they can be polymorphicaly extended.
 
         Parameters
-       ----------
-       f: lambda
-         Function called on each word- for transformation it.
+        ----------
+        f: lambda
+            Function called on each word- for transformation it.
 
-       inplace: bool, default: False
-         Return new Embedding instance or modify existing
+        inplace: bool, default: False
+            Return new Embedding instance or modify existing
 
-       lower: bool, default: False
-         If true, will convert all words to lowercase
+        lower: bool, default: False
+            If true, will convert all words to lowercase
 
-       Returns
-       -------
+        Returns
+        -------
         e: Embedding
         Instance of Embedding class with this same Vocabulary type as previous.
         """
