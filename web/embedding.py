@@ -138,6 +138,10 @@ class Embedding(object):
                 curr_words = list(lowered_words.keys())
                 curr_vec = np.asanyarray(list(lowered_words.values()))
 
+        else:
+            raise NotImplementedError(
+                'This kind of Vocabulary is not implemented in transform_words strategy and can not be matched')
+
         for id, w in enumerate(curr_words):
 
             fw = f(w)
@@ -180,9 +184,6 @@ class Embedding(object):
         elif isinstance(self.vocabulary, Vocabulary):
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
             vectors = curr_vec[[id_map[w] for w in words]]
-        else:
-            raise NotImplementedError(
-                'This kind of Vocabulary is not implemented in transform_words strategy and can not be mathed')
 
         logger.info("Transformed {} into {} words".format(word_count, len(curr_words)))
 
