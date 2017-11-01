@@ -95,7 +95,14 @@ class Embedding(object):
         return tw
 
     def transform_words(self, f, inplace=False, lower=False):
-        """ Transform words in vocabulary """
+        """
+        Transform words in vocabulary according to following strategy.
+        Prefer shortest and most often occurring words- after transforming by some (lambda f) function.
+
+        This allow eliminate noisy and wrong coded words.
+
+        Strategy is implemented for all types of Vocabulary- they can be polymorphicaly extended.
+        """
         id_map = OrderedDict()
         word_count = len(self.vectors)
         # store max word length before f(w)- in corpora
@@ -172,6 +179,8 @@ class Embedding(object):
         elif isinstance(self.vocabulary, Vocabulary):
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
             vectors = curr_vec[[id_map[w] for w in words]]
+        else:
+            raise NotImplementedError('This kind of Vocabulary is not implemented in transform_words strategy and can not be mathed')
 
         logger.info("Transformed {} into {} words".format(word_count, len(curr_words)))
 
@@ -222,7 +231,7 @@ class Embedding(object):
             Query word or vector.
 
           k: int, default: 1
-            Number of nearest neihbours to return.
+            Number of nearest neighbours to return.
 
           metric: string, default: 'cosine'
             Metric to use.
@@ -336,6 +345,7 @@ class Embedding(object):
                 # space in the word.
                 if len(parts) == layer1_size + 1:
                     word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[1:]))
+                # standard case where last element after splitting is not empty- some glove corpora have additional space
                 elif len(parts) == layer1_size + 2 and parts[-1]:
                     word, vectors[line_no - ignored] = parts[:2], list(map(np.float32, parts[2:]))
                     word = u" ".join(word)
