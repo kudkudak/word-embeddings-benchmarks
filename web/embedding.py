@@ -5,7 +5,10 @@ NOTE: This file was adapted from the polyglot package
 """
 
 import logging
+from collections import OrderedDict
+
 import numpy as np
+import sys
 
 from six import text_type
 from six import PY2
@@ -21,6 +24,7 @@ from .utils import standardize_string, to_utf8
 from sklearn.metrics import pairwise_distances
 
 logger = logging.getLogger(__name__)
+
 
 class Embedding(object):
     """ Mapping a vocabulary to a d-dimensional points."""
@@ -48,7 +52,6 @@ class Embedding(object):
             self.vectors = np.vstack([self.vectors, v.reshape(1, -1)])
         else:
             self.vectors[self.vocabulary[k]] = v
-
 
     def __contains__(self, k):
         return k in self.vocabulary
@@ -85,38 +88,127 @@ class Embedding(object):
             return default
 
     def standardize_words(self, lower=False, clean_words=False, inplace=False):
-        return self.transform_words(partial(standardize_string, lower=lower, clean_words=clean_words),
-                                    inplace=inplace)
+        tw = self.transform_words(partial(standardize_string, lower=lower, clean_words=clean_words), inplace=inplace,
+                                  lower=lower)
 
-    def transform_words(self, f, inplace=False):
-        """ Tranform words in vocabulary """
-        id_map = {}
-        id_map_to_new = {}
+        if clean_words:
+            tw = tw.transform_words(partial(lambda w: w.strip(" ")), inplace=inplace, lower=lower)
+        return tw
+
+    def transform_words(self, f, inplace=False, lower=False):
+        """
+        Transform words in vocabulary according to following strategy.
+        Prefer shortest and most often occurring words- after transforming by some (lambda f) function.
+
+        This allow eliminate noisy and wrong coded words.
+
+        Strategy is implemented for all types of Vocabulary- they can be polymorphicaly extended.
+
+        Parameters
+        ----------
+        f: lambda
+            Function called on each word- for transformation it.
+
+        inplace: bool, default: False
+            Return new Embedding instance or modify existing
+
+        lower: bool, default: False
+            If true, will convert all words to lowercase
+
+        Returns
+        -------
+        e: Embedding
+        Instance of Embedding class with this same Vocabulary type as previous.
+        """
+        id_map = OrderedDict()
         word_count = len(self.vectors)
-        if inplace:
-            for id, w in enumerate(self.vocabulary.words):
-                fw = f(w)
-                if len(fw) and (fw not in id_map):
+        # store max word length before f(w)- in corpora
+        words_len = {}
+        # store max occurrence count of word
+        counts = {}
+        is_vocab_generic = False
+
+        curr_words = self.vocabulary.words
+        curr_vec = self.vectors
+
+        if isinstance(self.vocabulary, CountedVocabulary):
+            _, counter_of_words = self.vocabulary.getstate()
+        elif isinstance(self.vocabulary, OrderedVocabulary):
+            # range in python3 is lazy
+            counter_of_words = range(len(self.vocabulary.words) - 1, -1, -1)
+
+        elif isinstance(self.vocabulary, Vocabulary):
+            is_vocab_generic = True
+            # if corpora contain lowercase version of word i- for case Vocabulary
+            lowered_words = {}
+
+            if lower:
+
+                for w, v in zip(self.vocabulary.words, self.vectors):
+                    wl = w.lower()
+                    if wl == w:
+                        lowered_words[wl] = v
+                    elif wl != w and wl not in lowered_words:
+                        lowered_words[wl] = v
+
+                curr_words = list(lowered_words.keys())
+                curr_vec = np.asanyarray(list(lowered_words.values()))
+
+        else:
+            raise NotImplementedError(
+                'This kind of Vocabulary is not implemented in transform_words strategy and can not be matched')
+
+        for id, w in enumerate(curr_words):
+
+            fw = f(w)
+            if len(fw) and fw not in id_map:
+                id_map[fw] = id
+
+                if not is_vocab_generic:
+                    counts[fw] = counter_of_words[id]
+                words_len[fw] = len(w)
+
+                # overwrite
+            elif len(fw) and fw in id_map:
+                if not is_vocab_generic and counter_of_words[id] > counts[fw]:
                     id_map[fw] = id
-                    id_map_to_new[fw] = len(id_map) - 1
-                    self.vectors[len(id_map) - 1] = self.vectors[id]
-                elif len(fw) and (fw in id_map) and (fw == w):
-                    # Overwrites with last occurence
-                    self.vectors[id_map_to_new[fw]] = self.vectors[id]
 
+                    counts[fw] = counter_of_words[id]
+                    words_len[fw] = len(w)
+                elif is_vocab_generic and len(w) < words_len[fw]:
+                    # for generic Vocabulary
+                    id_map[fw] = id
 
+                    words_len[fw] = len(w)
+                elif not is_vocab_generic and counter_of_words[id] == counts[fw] and len(w) < words_len[fw]:
+                    id_map[fw] = id
+
+                    counts[fw] = counter_of_words[id]
+                    words_len[fw] = len(w)
+
+                logger.warning("Overwriting {}".format(fw))
+
+        if isinstance(self.vocabulary, CountedVocabulary):
+            words_only = id_map.keys()
+            vectors = curr_vec[[id_map[w] for w in words_only]]
+            words = {w: counter_of_words[id_map[w]] for w in words_only}
+
+        elif isinstance(self.vocabulary, OrderedVocabulary):
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
-            self.vectors = self.vectors[0:len(id_map)]
+            vectors = curr_vec[[id_map[w] for w in words]]
+
+        elif isinstance(self.vocabulary, Vocabulary):
+            words = sorted(id_map.keys(), key=lambda x: id_map[x])
+            vectors = curr_vec[[id_map[w] for w in words]]
+
+        logger.info("Transformed {} into {} words".format(word_count, len(words)))
+
+        if inplace:
+            self.vectors = vectors
             self.vocabulary = self.vocabulary.__class__(words)
-            logger.info("Tranformed {} into {} words".format(word_count, len(words)))
+
             return self
         else:
-            for id, w in enumerate(self.vocabulary.words):
-                if len(f(w)) and (f(w) not in id_map or f(w) == w):
-                    id_map[f(w)] = id
-            words = sorted(id_map.keys(), key=lambda x: id_map[x])
-            vectors = self.vectors[[id_map[w] for w in words]]
-            logger.info("Tranformed {} into {} words".format(word_count, len(words)))
             return Embedding(vectors=vectors, vocabulary=self.vocabulary.__class__(words))
 
     def most_frequent(self, k, inplace=False):
@@ -148,7 +240,6 @@ class Embedding(object):
             return self
         return Embedding(vectors=vectors.T, vocabulary=self.vocabulary)
 
-
     def nearest_neighbors(self, word, k=1, exclude=[], metric="cosine"):
         """
         Find nearest neighbor of given word
@@ -159,7 +250,7 @@ class Embedding(object):
             Query word or vector.
 
           k: int, default: 1
-            Number of nearest neihbours to return.
+            Number of nearest neighbours to return.
 
           metric: string, default: 'cosine'
             Metric to use.
@@ -206,7 +297,8 @@ class Embedding(object):
         counts = {}
         with _open(fvocab) as fin:
             for line in fin:
-                word, count = standardize_string(line).strip().split()
+
+                word, count = standardize_string(line).split()
                 if word:
                     counts[word] = int(count)
         return CountedVocabulary(word_count=counts)
@@ -244,27 +336,41 @@ class Embedding(object):
     def _from_word2vec_text(fname):
         with _open(fname, 'r') as fin:
             words = []
+
             header = fin.readline()
             ignored = 0
             vocab_size, layer1_size = list(map(int, header.split()))  # throws for invalid file format
             vectors = np.zeros(shape=(vocab_size, layer1_size), dtype=np.float32)
             for line_no, line in enumerate(fin):
                 try:
-                    parts = text_type(line, encoding="utf-8").strip().split()
+                    parts = text_type(line, encoding="utf-8").split(' ')
+                    w = parts[0]
+                    parts = list(map(lambda x: x.strip(), parts[1:]))
+                    parts.insert(0, w)
+
                 except TypeError as e:
-                    parts = line.strip().split()
+                    parts = line.split(' ')
+                    w = parts[0]
+                    parts = list(map(lambda x: x.strip(), parts[1:]))
+                    parts.insert(0, w)
+
                 except Exception as e:
-                    logger.warning("We ignored line number {} because of erros in parsing"
+                    logger.warning("We ignored line number {} because of errors in parsing"
                                    "\n{}".format(line_no, e))
                     continue
+
                 # We differ from Gensim implementation.
                 # Our assumption that a difference of one happens because of having a
                 # space in the word.
                 if len(parts) == layer1_size + 1:
                     word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[1:]))
-                elif len(parts) == layer1_size + 2:
+                elif len(parts) == layer1_size + 2 and parts[-1]:
+                    # last element after splitting is not empty- some glove corpora have additional space
                     word, vectors[line_no - ignored] = parts[:2], list(map(np.float32, parts[2:]))
                     word = u" ".join(word)
+                elif not parts[-1]:
+                    # omit last value - empty string
+                    word, vectors[line_no - ignored] = parts[0], list(map(np.float32, parts[1:-1]))
                 else:
                     ignored += 1
                     logger.warning("We ignored line number {} because of unrecognized "
@@ -272,6 +378,7 @@ class Embedding(object):
                     continue
 
                 words.append(word)
+
             if ignored:
                 vectors = vectors[0:-ignored]
 
@@ -282,38 +389,52 @@ class Embedding(object):
 
             return words, vectors
 
-
     @staticmethod
     def from_glove(fname, vocab_size, dim):
         with _open(fname, 'r') as fin:
+
             words = []
+            words_uniq = set()
+
             ignored = 0
             vectors = np.zeros(shape=(vocab_size, dim), dtype=np.float32)
             for line_no, line in enumerate(fin):
                 try:
-                    parts = text_type(line, encoding="utf-8").strip().split()
+                    parts = text_type(line, encoding="utf-8").split(' ')
+                    parts[1:] = map(lambda x: np.float32(x.strip()), parts[1:])
                 except TypeError as e:
-                    parts = line.strip().split()
+
+                    parts = line.split(' ')
+                    parts[1:] = map(lambda x: np.float32(x.strip()), parts[1:])
+
                 except Exception as e:
                     ignored += 1
-                    logger.warning("We ignored line number {} because of erros in parsing"
+
+                    logger.warning("We ignored line number {} because of errors in parsing"
                                    "\n{}".format(line_no, e))
                     continue
 
                 try:
-                    word, vectors[line_no - ignored] = " ".join(parts[0:len(parts) - dim]), list(map(np.float32, parts[len(parts) - dim:]))
-                    words.append(word)
+                    if parts[0] not in words_uniq:
+                        word, vectors[line_no - ignored] = parts[0], list(parts[len(parts) - dim:])
+                        words.append(word)
+                        words_uniq.add(word)
+                    else:
+                        ignored += 1
+                        logger.warning(
+                            "We ignored line number {} - following word is duplicated in file:\n{}\n".format(line_no,
+                                                                                                             parts[0]))
+
                 except Exception as e:
                     ignored += 1
-                    logger.warning("We ignored line number {} because of erros in parsing"
+                    logger.warning("We ignored line number {} because of errors in parsing"
                                    "\n{}".format(line_no, e))
 
             return Embedding(vocabulary=OrderedVocabulary(words), vectors=vectors[0:len(words)])
 
-
     @staticmethod
     def from_dict(d):
-        for k in d: # Standardize
+        for k in d:  # Standardize
             d[k] = np.array(d[k]).flatten()
         return Embedding(vectors=list(d.values()), vocabulary=Vocabulary(d.keys()))
 
@@ -376,7 +497,7 @@ class Embedding(object):
 
         content = _open(fname).read()
         if PY2:
-            state = pickle.loads(content)
+            state = pickle.loads(content, encoding='latin1')
         else:
             state = pickle.loads(content, encoding='latin1')
         voc, vec = state

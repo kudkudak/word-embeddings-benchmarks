@@ -40,7 +40,7 @@ def load_embedding(fname, format="word2vec_bin", normalize=True,
     elif format == "glove":
         w = Embedding.from_glove(fname, **load_kwargs)
     elif format == "dict":
-        d = pickle.load(open(fname, "rb"))
+        d = pickle.load(open(fname, "rb"), encoding='latin1')
         w = Embedding.from_dict(d)
     if normalize:
         w.normalize_words(inplace=True)
@@ -484,6 +484,45 @@ def fetch_conceptnet_numberbatch(clean_words=False):
                        uncompress=False,
                        verbose=1)
     return load_embedding(path, format='word2vec', normalize=False, clean_words=clean_words)
+
+
+def fetch_FastText(lang="en", normalize=True, lower=False, clean_words=False):
+    """
+       Fetches fastText embeddings
+
+       Parameters
+       ----------
+       lang: str, default: "en"
+         Can choose between all accessible language on page:
+         https://fasttext.cc/docs/en/pretrained-vectors.html#content
+
+       normalize: bool, default: True
+         If true will normalize all vector to unit length
+
+       lower: bool, default: False
+         If true, will convert string to lowercase
+
+       clean_words: bool, default: False
+         If true will only keep alphanumeric characters and "_", "-"
+         Warning: shouldn't be applied to embeddings with non-ascii characters
+
+       Returns
+       -------
+       w: Embedding
+         Instance of Embedding class
+
+       References
+       ----------
+       Published at https://fasttext.cc/
+       """
+
+    url_vec = 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.{}.vec'.format(lang)
+
+    path = _fetch_file(url=url_vec, data_dir='embeddings',
+                       uncompress=False,
+                       verbose=1)
+
+    return load_embedding(path, format='word2vec', normalize=normalize, lower=lower, clean_words=clean_words)
 
 
 # TODO: uncomment after training is finished

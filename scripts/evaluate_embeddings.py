@@ -36,6 +36,7 @@ for dim in [50, 100, 200, 300]:
 for dim in [25, 50, 100, 200]:
     jobs.append(["fetch_GloVe", {"dim": dim, "corpus": "twitter-27B"}])
 
+
 for corpus in ["common-crawl-42B", "common-crawl-840B"]:
     jobs.append(["fetch_GloVe", {"dim": 300, "corpus": corpus}])
 
@@ -61,14 +62,19 @@ jobs.append(["fetch_LexVec", {}])
 ## ConceptNet Numberbatch
 jobs.append(["fetch_conceptnet_numberbatch", {}])
 
+## FastText
+jobs.append(["fetch_FastText", {}])
+
+
 def run_job(j):
     fn, kwargs = j
-    outf = path.join(opts.output_dir, fn + "_" + "_".join(str(k) + "=" + str(v) for k,v in iteritems(kwargs))) + ".csv"
+    outf = path.join(opts.output_dir, fn + "_" + "_".join(str(k) + "=" + str(v) for k, v in iteritems(kwargs))) + ".csv"
     logger.info("Processing " + outf)
     if not path.exists(outf):
         w = getattr(embeddings, fn)(**kwargs)
         res = evaluate_on_all(w)
         res.to_csv(outf)
+
 
 if __name__ == "__main__":
     Pool(opts.n_jobs).map(run_job, jobs)

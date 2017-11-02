@@ -7,7 +7,7 @@ NOTE: This file was adapted from the polyglot package
 """
 
 from io import open, StringIO
-from collections import Counter
+from collections import Counter, OrderedDict
 import os
 from concurrent.futures import ProcessPoolExecutor
 
@@ -183,7 +183,7 @@ class CountedVocabulary(OrderedVocabulary):
         sorted_counts = list(sorted(word_count, key=lambda wc: wc[1], reverse=True))
         words = [w for w, c in sorted_counts]
         super(CountedVocabulary, self).__init__(words=words)
-        self.word_count = dict(sorted_counts)
+        self.word_count = OrderedDict(sorted_counts)
 
     def most_frequent(self, k):
         """ Returns a vocabulary with the most frequent `k` words.
@@ -191,7 +191,7 @@ class CountedVocabulary(OrderedVocabulary):
         Args:
           k (integer): specifies the top k most frequent words to be returned.
         """
-        word_count = {w: self.word_count[w] for w in self.words[:k]}
+        word_count = [(w, self.word_count[w]) for w in self.words[:k]]
         return CountedVocabulary(word_count=word_count)
 
     def min_count(self, n=1):
@@ -200,7 +200,7 @@ class CountedVocabulary(OrderedVocabulary):
         Args:
           n (integer): specifies the minimum word frequency allowed.
         """
-        word_count = {w: c for w, c in iteritems(self.word_count) if c >= n}
+        word_count = [(w, c) for w, c in iteritems(self.word_count) if c >= n]
         return CountedVocabulary(word_count=word_count)
 
     def __unicode__(self):
@@ -208,7 +208,7 @@ class CountedVocabulary(OrderedVocabulary):
 
     def __delitem__(self, key):
         super(CountedVocabulary, self).__delitem__(key)
-        self.word_count = {w: self.word_count[w] for w in self}
+        self.word_count = OrderedDict([(w, self.word_count[w]) for w in self])
 
     def getstate(self):
         words = list(self.words)
@@ -224,5 +224,7 @@ class CountedVocabulary(OrderedVocabulary):
                                         word2 count2
         """
         word_count = [x.strip().split() for x in _open(filename, 'r').read().splitlines()]
-        word_count = {w: int(c) for w, c in word_count}
+        word_count = OrderedDict([(w, int(c)) for w, c in word_count])
         return CountedVocabulary(word_count=word_count)
+
+
