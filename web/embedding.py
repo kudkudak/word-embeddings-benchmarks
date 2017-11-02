@@ -201,7 +201,7 @@ class Embedding(object):
             words = sorted(id_map.keys(), key=lambda x: id_map[x])
             vectors = curr_vec[[id_map[w] for w in words]]
 
-        logger.info("Transformed {} into {} words".format(word_count, len(curr_words)))
+        logger.info("Transformed {} into {} words".format(word_count, len(words)))
 
         if inplace:
             self.vectors = vectors
