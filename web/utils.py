@@ -83,5 +83,5 @@ def _open(file_, mode='r'):
         if ext in {'.bz2'}:
             return bz2.BZ2File(file_, mode=mode)
         else:
-            return io.open(file_, mode)
+            return io.open(file_, mode, **({"encoding": "utf-8"} if "b" not in mode else {}))
     return file_
