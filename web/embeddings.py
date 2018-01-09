@@ -50,7 +50,7 @@ def load_embedding(fname, format="word2vec_bin", normalize=True,
 
 
 
-def fetch_GloVe(dim=300, corpus="wiki-6B", normalize=True, lower=False, clean_words=True):
+def fetch_GloVe(dim=300, corpus="wiki-6B", normalize=True, lower=False, clean_words=False):
     """
     Fetches GloVe embeddings.
 
@@ -280,7 +280,7 @@ def fetch_NMT(which="DE", normalize=True, lower=False, clean_words=False):
 
 
 
-def fetch_PDC(dim=300, normalize=True, lower=False, clean_words=True):
+def fetch_PDC(dim=300, normalize=True, lower=False, clean_words=False):
     """
     Fetches PDC embeddings trained on wiki by Fei Sun
 
@@ -331,7 +331,7 @@ def fetch_PDC(dim=300, normalize=True, lower=False, clean_words=True):
     return load_embedding(path, format="word2vec", normalize=normalize, lower=lower, clean_words=clean_words)
 
 
-def fetch_HDC(dim=300, normalize=True, lower=False, clean_words=True):
+def fetch_HDC(dim=300, normalize=True, lower=False, clean_words=False):
     """
     Fetches PDC embeddings trained on wiki by Fei Sun
 
@@ -383,7 +383,7 @@ def fetch_HDC(dim=300, normalize=True, lower=False, clean_words=True):
 
 
 
-def fetch_SG_GoogleNews(normalize=True, lower=False, clean_words=True):
+def fetch_SG_GoogleNews(normalize=True, lower=False, clean_words=False):
     """
     Fetches SG (skip-gram with negative sampling)
     embeddings trained on GoogleNews dataset published on word2vec website
