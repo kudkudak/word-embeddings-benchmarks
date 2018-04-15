@@ -13,6 +13,7 @@ from web import embeddings
 from six import iteritems
 from multiprocessing import Pool
 from os import path
+from tqdm import tqdm
 import logging
 import optparse
 import multiprocessing
@@ -67,14 +68,20 @@ jobs.append(["fetch_FastText", {}])
 
 
 def run_job(j):
-    fn, kwargs = j
-    outf = path.join(opts.output_dir, fn + "_" + "_".join(str(k) + "=" + str(v) for k, v in iteritems(kwargs))) + ".csv"
-    logger.info("Processing " + outf)
-    if not path.exists(outf):
-        w = getattr(embeddings, fn)(**kwargs)
-        res = evaluate_on_all(w)
-        res.to_csv(outf)
+    try:
+        fn, kwargs = j
+        outf = path.join(opts.output_dir, fn + "_" + "_".join(str(k) + "=" + str(v) for k, v in iteritems(kwargs))) + ".csv"
+        logger.info("Processing " + outf)
+        if not path.exists(outf):
+            w = getattr(embeddings, fn)(**kwargs)
+            res = evaluate_on_all(w)
+            res.to_csv(outf)
+    except Exception as e:
+        return e
 
 
 if __name__ == "__main__":
-    Pool(opts.n_jobs).map(run_job, jobs)
+    es = list(tqdm(Pool(opts.n_jobs).imap(run_job, jobs), total=len(jobs), desc="Running", unit="job"))
+    print(es)
+    for e in es:
+        raise e
