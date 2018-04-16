@@ -294,7 +294,7 @@ def _get_dataset_dir(sub_dir=None, data_dir=None, default_paths=None,
             path = os.path.join(path, sub_dir)
         if not os.path.exists(path):
             try:
-                os.makedirs(path, exist_ok=True)
+                os.makedirs(path)
                 if verbose > 0:
                     print('\nDataset created in %s\n' % path)
                 return path
@@ -477,7 +477,8 @@ def movetree(src, dst):
     names = os.listdir(src)
 
     # Create destination dir if it does not exist
-    os.makedirs(dst, exist_ok=True)
+    if not os.path.exists(dst):
+        os.makedirs(dst)
     errors = []
 
     for name in names:
@@ -565,7 +566,8 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,md5sum=None,
             data_dir = _get_dataset_dir(data_dir)
 
         # Determine data path
-        os.makedirs(data_dir, exist_ok=True)
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
 
         # Determine filename using URL
         parse = _urllib.parse.urlparse(url)
@@ -685,7 +687,8 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,md5sum=None,
     temp_dir = os.path.join(data_dir, files_md5)
 
     # Create destination dir
-    os.makedirs(data_dir, exist_ok=True)
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
 
     # Abortion flag, in case of error
     abort = None
@@ -735,13 +738,15 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,md5sum=None,
                          "not provided:\nURL:%s\nFile:%s" %
                          (url, target_file))
             else:
-                os.makedirs(os.path.dirname(temp_target_file), exist_ok=True)
+                if not os.path.exists(os.path.dirname(temp_target_file)):
+                    os.makedirs(os.path.dirname(temp_target_file))
                 open(temp_target_file, 'w').close()
 
         if move:
             move = os.path.join(data_dir, move)
             move_dir = os.path.dirname(move)
-            os.makedirs(move_dir, exist_ok=True)
+            if not os.path.exists(move_dir):
+                os.makedirs(move_dir)
             shutil.move(dl_file, move)
             dl_file = move
             target_file = dl_file
