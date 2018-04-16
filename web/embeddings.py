@@ -130,10 +130,10 @@ def fetch_GloVe(dim=300, corpus="wiki-6B", normalize=True, lower=False, clean_wo
     assert corpus in download_file, "Unrecognized corpus"
     assert dim in embedding_file[corpus], "Not available dimensionality"
 
-    _ = _fetch_file(url=download_file[corpus],
-                           data_dir="embeddings",
-                           uncompress=True,
-                           verbose=1)
+    _fetch_file(url=download_file[corpus],
+                data_dir="embeddings",
+                uncompress=True,
+                verbose=1)
 
     return load_embedding(path.join(_get_dataset_dir("embeddings"), embedding_file[corpus][dim]),
                            format="glove",
