@@ -4,10 +4,14 @@
  Functions for fetching similarity datasets
 """
 
-import numpy as np
+import os
 
+import numpy as np
+import pandas as pd
 from sklearn.datasets.base import Bunch
-from .utils import _get_as_pd
+
+from .utils import _get_as_pd, _fetch_file
+
 
 def fetch_MTurk():
     """
@@ -305,3 +309,35 @@ def fetch_SimLex999():
     assoc = data[['Assoc(USF)', 'SimAssoc333']].values
 
     return Bunch(X=X.astype("object"), y=y, sd=sd, conc=conc, POS=POS, assoc=assoc)
+
+
+def fetch_TR9856():
+    """
+    Fetch TR9856 dataset for testing multi-word term relatedness
+
+    Returns
+    -------
+    data : sklearn.datasets.base.Bunch
+        dictionary-like object. Keys of interest:
+        'X': matrix of 2 words per column,
+        'y': vector with scores,
+        'topic': vector of topics providing context for each pair of terms
+
+    References
+    ----------
+    Levy, Ran et al., "TR9856: A multi-word term relatedness benchmark", 2015.
+
+    Notes
+    -----
+    """
+    data = pd.read_csv(os.path.join(_fetch_file(
+        'https://www.research.ibm.com/haifa/dept/vst/files/IBM_Debater_(R)_TR9856.v2.zip',
+        'similarity', uncompress=True, verbose=0),
+        'IBM_Debater_(R)_TR9856.v0.2', 'TermRelatednessResults.csv'), encoding="iso-8859-1")
+
+    # We basically select all the columns available
+    X = data[['term1', 'term2']].values
+    y = data['score'].values
+    topic = data['topic'].values
+
+    return Bunch(X=X.astype("object"), y=y, topic=topic)
