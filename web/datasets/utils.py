@@ -4,6 +4,7 @@ Downloading datasets: utility functions
 This is a copy of nilearn.datasets.
 """
 
+import errno
 import os
 import numpy as np
 import base64
@@ -24,7 +25,19 @@ from tqdm import tqdm
 from sklearn.datasets.base import Bunch
 from .._utils.compat import _basestring, cPickle, _urllib, md5_hash
 
+
 TEMP = tempfile.gettempdir()
+
+
+def _makedirs(path):  # https://stackoverflow.com/a/600612/223267
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
 
 
 def _get_cluster_assignments(dataset_name, url, sep=" ", skip_header=False):
@@ -294,7 +307,7 @@ def _get_dataset_dir(sub_dir=None, data_dir=None, default_paths=None,
             path = os.path.join(path, sub_dir)
         if not os.path.exists(path):
             try:
-                os.makedirs(path)
+                _makedirs(path)
                 if verbose > 0:
                     print('\nDataset created in %s\n' % path)
                 return path
@@ -477,8 +490,7 @@ def movetree(src, dst):
     names = os.listdir(src)
 
     # Create destination dir if it does not exist
-    if not os.path.exists(dst):
-        os.makedirs(dst)
+    _makedirs(dst)
     errors = []
 
     for name in names:
@@ -566,8 +578,7 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,md5sum=None,
             data_dir = _get_dataset_dir(data_dir)
 
         # Determine data path
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
+        _makedirs(data_dir)
 
         # Determine filename using URL
         parse = _urllib.parse.urlparse(url)
@@ -687,8 +698,7 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,md5sum=None,
     temp_dir = os.path.join(data_dir, files_md5)
 
     # Create destination dir
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
+    _makedirs(data_dir)
 
     # Abortion flag, in case of error
     abort = None
@@ -738,15 +748,13 @@ def _fetch_file(url, data_dir=TEMP, uncompress=False, move=False,md5sum=None,
                          "not provided:\nURL:%s\nFile:%s" %
                          (url, target_file))
             else:
-                if not os.path.exists(os.path.dirname(temp_target_file)):
-                    os.makedirs(os.path.dirname(temp_target_file))
+                _makedirs(os.path.dirname(temp_target_file))
                 open(temp_target_file, 'w').close()
 
         if move:
             move = os.path.join(data_dir, move)
             move_dir = os.path.dirname(move)
-            if not os.path.exists(move_dir):
-                os.makedirs(move_dir)
+            _makedirs(move_dir)
             shutil.move(dl_file, move)
             dl_file = move
             target_file = dl_file
