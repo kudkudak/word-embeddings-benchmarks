@@ -1,7 +1,7 @@
 matplotlib>=1.5.0
 numpy>=1.10.0
 Cython
-pandas==0.2
+pandas==0.19
 pytest>=2.8.3
 scipy>=0.9
 scikit-learn>=0.16.1
