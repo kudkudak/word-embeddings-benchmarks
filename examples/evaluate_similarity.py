@@ -28,5 +28,4 @@ for name, data in iteritems(tasks):
 
 # Calculate results using helper function
 for name, data in iteritems(tasks):
-    print "Spearman correlation of scores on {} {}".format(name, evaluate_similarity(w_glove, data.X, data.y))
-
+    print("Spearman correlation of scores on {} {}".format(name, evaluate_similarity(w_glove, data.X, data.y)))
