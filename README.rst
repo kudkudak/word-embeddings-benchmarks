@@ -23,12 +23,13 @@ Please also refer to our recent publication on evaluation methods https://arxiv.
 Features:
 
 * scikit-learn API and conventions
-* 17 popular datasets
+* 18 popular datasets
 * 11 word embeddings (word2vec, HPCA, morphoRNNLM, GloVe, LexVec, ConceptNet, HDC/PDC and others)
 * methods to solve analogy, similarity and categorization tasks
 
 Included datasets:
 
+* TR9856
 * WordRep
 * Google Analogy
 * MSR Analogy
