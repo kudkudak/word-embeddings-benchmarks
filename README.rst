@@ -17,7 +17,6 @@ See `here <https://github.com/kudkudak/word-embeddings-benchmarks/wiki>`_ result
 Warnings and Disclaimers:
 
 * Analogy test does not normalize internally word embeddings.
-
 **Package is currently under development, and we expect within next few months an official release**. The main issue that might hit you at the moment is rather long embeddings loading times (especially if you use fetchers).
 
 Please also refer to our recent publication on evaluation methods https://arxiv.org/abs/1702.02170.
