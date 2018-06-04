@@ -14,10 +14,9 @@ To evaluate your embedding (converted to word2vec or python dict pickle)
 on all fast-running benchmarks execute `./scripts/eval_on_all.py <path-to-file>`.
 See `here <https://github.com/kudkudak/word-embeddings-benchmarks/wiki>`_ results for embeddings available in the package.
 
-Warning:
-* Analogy test does not normalize internally word embeddings.
+Warnings and Disclaimers:
 
-Disclaimer:
+* Analogy test does not normalize internally word embeddings.
 
 **Package is currently under development, and we expect within next few months an official release**. The main issue that might hit you at the moment is rather long embeddings loading times (especially if you use fetchers).
 
