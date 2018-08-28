@@ -422,7 +422,7 @@ def fetch_LexVec(which="commoncrawl-W+C", normalize=True, lower=False, clean_wor
     Parameters
     ----------
     which: str, default: "commoncrawl-W+C"
-      Can choose between "commoncrawl-W", "commoncrawl-W+C", "wikipedia+newscrawl-W", "wikipedia+newscrawl-W+C"
+      Can choose between "commoncrawl-W", "commoncrawl-W+C", "wikipedia+newscrawl-W", "wikipedia+newscrawl-W+C", "commoncrawl-ngramsubwords-W"
 
     normalize: bool, default: True
       If true will normalize all vector to unit length
@@ -445,10 +445,11 @@ def fetch_LexVec(which="commoncrawl-W+C", normalize=True, lower=False, clean_wor
     Reference paper: Salle, Alexandre, Marco Idiart, and Aline Villavicencio. Matrix Factorization using Window Sampling and Negative Sampling for Improved Word Representations. The 54th Annual Meeting of the Association for Computational Linguistics. 2016.
     """
     download_file = {
-            "commoncrawl-W": "http://nlpserver2.inf.ufrgs.br/alexandres/vectors/lexvec.commoncrawl.300d.W.pos.vectors.gz",
-            "commoncrawl-W+C": "http://nlpserver2.inf.ufrgs.br/alexandres/vectors/lexvec.commoncrawl.300d.W+C.pos.vectors.gz",
-            "wikipedia+newscrawl-W": "http://nlpserver2.inf.ufrgs.br/alexandres/vectors/lexvec.enwiki%2bnewscrawl.300d.W.pos.vectors.gz",
-            "wikipedia+newscrawl-W+C": "http://nlpserver2.inf.ufrgs.br/alexandres/vectors/lexvec.enwiki%2bnewscrawl.300d.W+C.pos.vectors.gz",
+            "commoncrawl-W": "https://www.dropbox.com/s/flh1fjynqvdsj4p/lexvec.commoncrawl.300d.W.pos.vectors.gz?dl=1",
+            "commoncrawl-W+C": "https://www.dropbox.com/s/zkiajh6fj0hm0m7/lexvec.commoncrawl.300d.W%2BC.pos.vectors.gz?dl=1",
+            "wikipedia+newscrawl-W": "https://www.dropbox.com/s/kguufyc2xcdi8yk/lexvec.enwiki%2Bnewscrawl.300d.W.pos.vectors.gz?dl=1",
+            "wikipedia+newscrawl-W+C": "https://www.dropbox.com/s/u320t9bw6tzlwma/lexvec.enwiki%2Bnewscrawl.300d.W%2BC.pos.vectors.gz?dl=1",
+            "commoncrawl-ngramsubwords-W": "https://www.dropbox.com/s/mrxn933chn5u37z/lexvec.commoncrawl.ngramsubwords.300d.W.pos.vectors.gz?dl=1"
     }
 
     path = _fetch_file(url=download_file[which],
