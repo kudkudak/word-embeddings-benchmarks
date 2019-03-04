@@ -11,7 +11,7 @@ results (as there is a lot of contradictory results in the literature right now)
 This should also help to answer question if we should devise new methods for evaluating word embeddings.
 
 To evaluate your embedding (converted to word2vec or python dict pickle)
-on all fast-running benchmarks execute `./scripts/eval_on_all.py <path-to-file>`.
+on all fast-running benchmarks execute ``./scripts/eval_on_all.py <path-to-file>``.
 See `here <https://github.com/kudkudak/word-embeddings-benchmarks/wiki>`_ results for embeddings available in the package.
 
 Warnings and Disclaimers:
@@ -51,20 +51,20 @@ Note: embeddings are not hosted currently on a proper server, if the download is
 Dependencies
 ======
 
-Please see the requirements.txt and pip_requirements.txt file.
+Please see ``requirements.txt``.
 
 Install
 ======
 
-This package uses setuptools. You can install it running:
+This package uses setuptools. You can install it running::
 
     python setup.py install
 
-If you have problems during this installation. First you may need to install the dependencies:
+If you have problems during this installation. First you may need to install the dependencies::
 
     pip install -r requirements.txt
 
-If you already have the dependencies listed in requirements.txt installed,
+If you already have the dependencies listed in ``requirements.txt`` installed,
 to install in your home directory, use::
 
     python setup.py install --user
@@ -86,4 +86,3 @@ See `examples` folder.
 License
 =======
 Code is licensed under MIT, however available embeddings distributed within package might be under different license. If you are unsure please reach to authors (references are included in docstrings)
-
