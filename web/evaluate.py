@@ -367,7 +367,6 @@ def evaluate_on_all(w):
         "RW": fetch_RW(),
         "RG65": fetch_RG65(),
         "MTurk": fetch_MTurk(),
-        "TR9856": fetch_TR9856(),
     }
 
     similarity_results = {}
